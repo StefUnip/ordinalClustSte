@@ -1,0 +1,7 @@
+useDynLib(ordinalClust)
+export("boscoclustMulti","boscoclust","bosclustMulti","bosclust", "bosclassif","bosclassifMulti","bosplot","pejSim")
+importFrom("stats", "kmeans", "median", "rgamma", "rmultinom", "runif")
+importFrom(Rcpp, evalCpp)
+importFrom("progress", "progress_bar")
+importFrom("grDevices", "gray")
+importFrom("graphics", "abline", "image", "legend", "par")
