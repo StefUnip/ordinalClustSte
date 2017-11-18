@@ -1,16 +1,6 @@
 bosclassif.no.kc <-
   function (x,y,to.predict,kr,m,nbSEM=50,nbSEMburn=20,nbindmini=4,
             init='kmeans',disp=TRUE,iterordiEM=10) {
-    # ----------------------------------------------------------------------------
-    # Estimation of the latent BOS coclustering model via SEM algoritm
-    # input
-    #   x  : matrice n x p de donnees ordinales (individu en ligne, variable en colonne)
-    #   kc : nb de classes en colonne
-    #   kr : nb de classes en ligne  
-    #   m  : nombre de modalites (identique pour toutes les variables) 
-    #   nbSEM : nombre d'iterations de l'algo. SEM
-    #   nbburn : taille de la periode de burn
-    # ----------------------------------------------------------------------------
     
     # setting progress bar
     if(disp) 
@@ -21,7 +11,7 @@ bosclassif.no.kc <-
       )
     }
 
-    # on charge en memoire les exposants des probas BOS sous forme polynomiales
+   # constant for polynomial probability (BOS) 
     tab_pej=tabpej(m)
     
     # ---
@@ -30,7 +20,7 @@ bosclassif.no.kc <-
     missing=FALSE
     if (sum(x==0)>0) {
       missing=TRUE
-      # imputation aleatoire lors de l'init
+      # aleatory imputation for missing values
       miss=which(x==0)
       x[miss]=sample(1:m,sum(x==0),replace=TRUE)
     }
@@ -65,10 +55,9 @@ if(missing){
     # ==== init ==== 
     #No need to initialize the V and W because we know them
 
-    # init des parametres a partir des partitions
+    # ---- parameters initialization from partitions ----
     for (h in 1:d){
       for (k in 1:kr){
-        # init des parametres en fonction des partitions aleatoires
         res <- ordiemCpp(m,tab_pej,as.vector(x[which(V[,k]==1),h]),
                          tabmu0=1:m,tabp0=seq(0,1,0.2),
                          iter_max=iterordiEM)
@@ -81,14 +70,14 @@ if(missing){
         }
       }
     }
-    # === init des valeurs manquantes ===
+    # ---- missing values initialization ----
     if (missing){
-      x[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+      x[miss]=0 
       for (h in 1:d){
         for (k in 1:kr){
-          # recherche des cases manquantes
+
           tmp=which(x[which(V[,k]==1),h]==0)
-          # simulation des data manquantes
+
           if (length(tmp)>0){
             probaBOS=rep(0,m)
             for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,mu[k,h,1],]*(rep(p[k,h,1],m)^(0:(m-1)))))
@@ -97,7 +86,7 @@ if(missing){
         }
       }
     }
-    # === debut du SEM ===
+    # ============  SEM ============
     for (iter in 1:nbSEM){
       if (disp) pb$tick()
       # ==== SE step ==== 
@@ -107,12 +96,12 @@ if(missing){
       
       # --- imputation des donnees manquantes ----
       #if (missing){
-        x[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+        x[miss]=0 
         for (h in 1:d){
           for (k in 1:kr){
-            # recherche des cases manquantes
+            
             tmp=which(x[which(V[,k]==1),h]==0)
-            # simulation des data manquantes
+            
             if (length(tmp)>0){
               probaBOS=rep(0,m)
               for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,mu[k,h,iter],]*(rep(p[k,h,iter],m)^(0:(m-1)))))
@@ -144,7 +133,7 @@ if(missing){
         }
       
     }# for iter
-    # ===== calcul des parametres (mode et median hors burn) =====
+    # ===== parameters computaton (mode and median after burn-in) =====
     for (h in 1:d){
       for (k in 1:kr){
         res_mu[k,h]=mode(mu[k,h,nbSEMburn:(nbSEM+1)])
@@ -179,7 +168,7 @@ else{ #### case no missing value: NO SEM neeeded
 
   for (h in 1:d){
     for (k in 1:kr){
-      # init des parametres en fonction des partitions aleatoires
+
       res <- ordiemCpp(m,tab_pej,as.vector(x[which(V[,k]==1),h]),
                            tabmu0=1:m,tabp0=seq(0,1,0.1),
                            iter_max=iterordiEM)
@@ -198,7 +187,7 @@ else{ #### case no missing value: NO SEM neeeded
 }
     
     
-      # ===== estimation des partitions et des valeurs manquantes  =====
+     # ===== estimation of partitions  =====
       if(disp) 
       {
         pb2 <- progress_bar$new(
@@ -212,7 +201,7 @@ else{ #### case no missing value: NO SEM neeeded
       for (iterQ in 1:Q){
         # --- no need for simulation about column  or row partitions
         if(disp) pb2$tick()
-        # --- simulation des donnees manquantes ---
+       # --- missing values simulation ---
         if (missing){
           tmpx=x
           tmpx[miss]=0 # on remet des 0 la ou il y avait des data manquantes
@@ -231,20 +220,20 @@ else{ #### case no missing value: NO SEM neeeded
           Xhat[,,iterQ+1]=tmpx
         }
       }#iterQ
-      # --- estimation de la partition finale par mode marginal ---
+      # --- final partition estimation  ---
 
-      # --- estimation des valeurs manquantes par le mode marginal ---
+       # --- missing vlues final estimtion ---
       for (i in 1:n){
         for (h in 1:d){
           if (x[i,h]==0) x[i,h]=mode(Xhat[i,h,])
         }
       }
-      # --- sauvegarde de la matrice completee ---
+      
       xhat=x
-      # --- approximation de la loglik (non faite) ---
+     
 
 
-    # estimation des partitions
+  
     zr=res_zr
 
 

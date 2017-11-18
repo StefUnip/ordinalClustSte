@@ -140,7 +140,7 @@ bosplot(object)
 ```{r  echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""}
 library(knitr)    # For knitting document and include_graphics function
 
-include_graphics("figures/clust.PNG")
+include_graphics("figures/clust.png")
 ```
 
 
@@ -194,7 +194,7 @@ bosplot(object)
 ```{r  echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""}
 library(knitr)    # For knitting document and include_graphics function
 
-include_graphics("figures/coclust.PNG")
+include_graphics("figures/coclust.png")
 ```
 
 
@@ -355,7 +355,7 @@ object <- boscoclustMulti(x=M,kr=krow,kc=kcol,m=m, d.list=d.list,
 <!-- ```{r  echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""} -->
 <!-- library(knitr)    # For knitting document and include_graphics function -->
 
-<!-- include_graphics("figures/multi.PNG") -->
+<!-- include_graphics("figures/multi.png") -->
 <!-- ``` -->
 
 

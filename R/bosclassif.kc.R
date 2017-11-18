@@ -1,16 +1,7 @@
 bosclassif.kc <-
   function (x,y,to.predict,kr,kc=1,m,nbSEM=50,nbSEMburn=20,nbindmini=4,
             init='kmeans',disp=TRUE,iterordiEM=10) {
-    # ----------------------------------------------------------------------------
-    # Estimation of the latent BOS coclustering model via SEM algoritm
-    # input
-    #   x  : matrice n x p de donnees ordinales (individu en ligne, variable en colonne)
-    #   kc : nb de classes en colonne
-    #   kr : nb de classes en ligne  
-    #   m  : nombre de modalites (identique pour toutes les variables) 
-    #   nbSEM : nombre d'iterations de l'algo. SEM
-    #   nbburn : taille de la periode de burn
-    # ----------------------------------------------------------------------------
+
     
     # setting progress bar
     if(disp) 
@@ -21,7 +12,7 @@ bosclassif.kc <-
       )
     }
 
-    # on charge en memoire les exposants des probas BOS sous forme polynomiales
+    # constant for polynomial probability (BOS) 
     tab_pej=tabpej(m)
     
 
@@ -33,7 +24,7 @@ bosclassif.kc <-
     missing=FALSE
     if (sum(x==0)>0) {
       missing=TRUE
-      # imputation aleatoire lors de l'init
+      # aleatory imputation for missing values
       miss=which(x==0)
       x[miss]=sample(1:m,sum(x==0),replace=TRUE)
     }
@@ -61,7 +52,7 @@ bosclassif.kc <-
       res_gamma[k] <- length(which(y==k))/length(y)
     }
 
-    #creating the V (we know them)
+    # creating the V (known)
     for(i in 1:n){
       V[i,y[i]] = 1
       res_V[i,y[i]] = 1
@@ -69,34 +60,36 @@ bosclassif.kc <-
 
 
       # ==== init ==== 
-      # --- init aleatoire des partitions ----
+      # --- aleatory initialization for partitions ----
       if (init=='random'){
         W[,,1]=t(rmultinom(d,1,rep(1/kc,kc)))
-        while (! verif(x,V,W[,,1],kc,nbindmini))
+        restart <- 0
+        while (! verif(x,V,W[,,1],kc,nbindmini) && restart<1000)
         {
-          print('reload random init')
+          #print('reload random init')
           W[,,1]=t(rmultinom(d,1,rep(1/kc,kc)))
+          restart <- restart + 1
         }
       }
       
-      # --- init kmeans des partitions ----
+      # --- kmeans initialization for partitions ----
       if (init=='kmeans'){
         tmpW=kmeans(t(x),kc,nstart=10)  
         for (i in 1:d) W[i,tmpW$cluster[i],1]=1
-        while (! verif(x,V,W[,,1],kc,nbindmini))
+        restart <- 0
+        while (! verif(x,V,W[,,1],kc,nbindmini) && restart<1000)
         {
-          print('reload kmeans init')
+          #print('reload kmeans init')
           W[,,1]=0
           tmpW=kmeans(t(x),kc,nstart=2)  
           for (i in 1:d) W[i,tmpW[i]$cluster,1]=1
+          restart <- restart + 1
         }  
       }
-      # init des parametres a partir des partitions
+      # ---- parameters initialization from partitions ----
       rho[,1]=getMeans(W[,,1])
       for (l in 1:kc){
         for (k in 1:kr){
-          # init des parametres en fonction des partitions aleatoires
-          # res=ordiem(as.vector(x[which(V[,k,1]==1),which(W[,l,1]==1)]),m,tabmu0=1:m,tabp0=seq(0,1,0.2),iter_max=iterordiEM)
           res <- ordiemCpp(m,tab_pej,as.vector(x[which(V[,k]==1),
                                                  which(W[,l,1]==1)]),
                            tabmu0=1:m,tabp0=seq(0,1,0.2),
@@ -110,14 +103,14 @@ bosclassif.kc <-
           }
         }
       }
-      # === init des valeurs manquantes ===
+      # ---- missing values initialization ----
       if (missing){
-        x[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+        x[miss]=0 
         for (l in 1:kc){
           for (k in 1:kr){
             # recherche des cases manquantes
             tmp=which(x[which(V[,k]==1),which(W[,l,1]==1)]==0)
-            # simulation des data manquantes
+            # simulation 
             if (length(tmp)>0){
               probaBOS=rep(0,m)
               for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,mu[k,l,1],]*(rep(p[k,l,1],m)^(0:(m-1)))))
@@ -129,12 +122,11 @@ bosclassif.kc <-
 
 
 
-        # === debut du SEM ===
+        # ============  SEM ============
         for (iter in 1:nbSEM){
           #if (disp) cat('iteration ',iter,'/',nbSEM,'\n')
           if(disp) pb$tick()
           # ==== SE step ==== 
-          # --- calcul des proba pour la simulation de la partition en colonne
 
           logprobaW=matrix(log(rho[,iter]),nrow=d,ncol=kc,byrow = T)
           for (k in 1:kr){
@@ -171,14 +163,14 @@ bosclassif.kc <-
               #cat('restart number ',restart,'\n')
             }
           }
-          # --- imputation des donnees manquantes ----
+          # --- missing vaues imputation ----
           if (missing){
-            x[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+            x[miss]=0 
             for (l in 1:kc){
               for (k in 1:kr){
-                # recherche des cases manquantes
+
                 tmp=which(x[which(V[,k]==1),which(W[,l,iter+1]==1)]==0)
-                # simulation des data manquantes
+                # simulation
                 if (length(tmp)>0){
                   probaBOS=rep(0,m)
                   for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,mu[k,l,iter],]*(rep(p[k,l,iter],m)^(0:(m-1)))))
@@ -198,7 +190,7 @@ bosclassif.kc <-
               for (k in 1:kr){
                 tmp=as.vector(x[which(V[,k]==1),which(W[,l,iter+1]==1)])
                 datablock_kl=tmp[tmp>0]
-                # res=ordiem(datablock_kl,m,tabmu0=1:m,tabp0=p[k,l,iter],iter_max=iterordiEM)
+                
                 res <- ordiemCpp(m,tab_pej,datablock_kl,
                           tabmu0=1:m,tabp0=p[k,l,iter],
                           iter_max=iterordiEM)
@@ -213,7 +205,7 @@ bosclassif.kc <-
             }
           
         }# for iter
-        # ===== calcul des parametres (mode et median hors burn) =====
+        # ===== parameters computaton (mode and median after burn-in) =====
         for (l in 1:kc){
           res_rho[l]=median(rho[l,nbSEMburn:(nbSEM+1)])
           for (k in 1:kr){
@@ -225,7 +217,7 @@ bosclassif.kc <-
 
 
 
-      # ===== estimation des partitions et des valeurs manquantes  =====
+      # ===== estimation of partitions  =====
       if(disp) 
       {
         pb2 <- progress_bar$new(
@@ -240,7 +232,7 @@ bosclassif.kc <-
       Xhat[,,1:(Q+1)]=x
       for (iterQ in 1:Q){
         if(disp) pb2$tick()
-        # --- simulation des partitions en ligne et en colonne ---
+        # --- partition simulation  ---
         logprobaW=matrix(log(res_rho),nrow=d,ncol=kc,byrow = T)
         for (k in 1:kr){
           for(l in 1:kc){
@@ -257,15 +249,15 @@ bosclassif.kc <-
           probaW[h,]=exp ( logprobaW[h,] -  tmp)
           Wfinal[h,,iterQ+1]=rmultinom(1,1,probaW[h,])
         }
-        # --- simulation des donnees manquantes ---
+        # --- missing values simulation ---
         if (missing){
           tmpx=x
-          tmpx[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+          tmpx[miss]=0 
           for (l in 1:kc){
             for (k in 1:kr){
-              # recherche des cases manquantes
+              
               tmp=which(tmpx[which(V[,k]==1),which(Wfinal[,l,iterQ]==1)]==0)
-              # simulation des data manquantes
+
               if (length(tmp)>0){
                 probaBOS=rep(0,m)
                 for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,res_mu[k,l],]*(rep(res_p[k,l],m)^(0:(m-1)))))
@@ -276,28 +268,25 @@ bosclassif.kc <-
           Xhat[,,iterQ+1]=tmpx
         }
       }#iterQ
-      # --- estimation de la partition finale par mode marginal ---
+      # --- final partition estimation  ---
 
       res_zc=apply(apply(Wfinal,c(1,2),sum),1,which.max)
 
       for (h in 1:d) res_W[h,res_zc[h]]=1
-      # --- estimation des valeurs manquantes par le mode marginal ---
+      # --- missing values final estimation ---
       for (i in 1:n){
         for (h in 1:d){
           if (x[i,h]==0) x[i,h]=mode(Xhat[i,h,])
         }
       }
-      # --- sauvegarde de la matrice completee ---
+     
       xhat=x
-      # --- approximation (plus faite)
-
 
     
-    # estimation des partitions
+    # partitions
     zr=res_zr
     zc=res_zc
-    # calcul ICL Brault
-    # formule adaptee a notre cas ( 1 au lieu de m-1 param par case), mais a verifier theoriquement
+    # ICL computation
     if (!missing){
       icl=- (kr-1)/2 *log(n)- (kc-1)/2 *log(d)- kc*kr/2 *log(n*d)
       for(i in 1:n){
@@ -313,11 +302,14 @@ bosclassif.kc <-
           for(i in 1:n){
             for(k in 1:kr){
               icl = icl + res_W[h,l] * res_V[i,k] * log ( (sum(tab_pej[x[i,h],res_mu[k,l],]*(rep(res_p[k,l],m)^(0:(m-1))))) )
-            }}}}
+            }
+          }
+        }
+      }
     }
     else{
       
-      # --  fin approximation par moyenne harmonique --
+     
       icl=- (kr-1)/2 *log(n)- (kc-1)/2 *log(d)- kc*kr/2 *log(n*d)
       for(i in 1:n){
         for(k in 1:kr){
@@ -389,7 +381,6 @@ bosclassif.kc <-
     for (i in 1:n.to.predict){
       tmp=logsum (logprobas[i,])
       probas[i,]=exp ( logprobas[i,] - tmp )
-      #V.to.predict[i,]=rmultinom(1,1,probas[i,])
       idx = which(probas[i,]==max(probas[i,]))
       V.to.predict[i,idx] = 1
     }

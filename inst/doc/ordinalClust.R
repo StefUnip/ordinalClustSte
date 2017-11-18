@@ -42,13 +42,13 @@ plot1
 
 ## ----echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE-----------------
 #  
-#  plot.bos(object)
+#  bosplot(object)
 #  
 
 ## ----echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""----
 library(knitr)    # For knitting document and include_graphics function
 
-include_graphics("figures/clust.PNG")
+include_graphics("figures/clust.png")
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
 #  
@@ -82,13 +82,13 @@ include_graphics("figures/clust.PNG")
 
 ## ----echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE-----------------
 #  
-#  plot.bos(object)
+#  bosplot(object)
 #  
 
 ## ----echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""----
 library(knitr)    # For knitting document and include_graphics function
 
-include_graphics("figures/coclust.PNG")
+include_graphics("figures/coclust.png")
 
 ## ---- echo=TRUE, message=FALSE, warning=FALSE----------------------------
 

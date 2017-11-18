@@ -55,45 +55,33 @@ boscoclust <-
       if (init=='random'){
         V[,,1]=t(rmultinom(n,1,rep(1/kr,kr)))
         W[,,1]=t(rmultinom(d,1,rep(1/kc,kc)))
-        while (! verif(x,V[,,1],W[,,1],kc,nbindmini))
+        restart <- 0
+        while (! verif(x,V[,,1],W[,,1],kc,nbindmini) && restart<1000)
         {
-          if(disp)print('reload random init')
+          #if(disp)print('reload random init')
           V[,,1]=t(rmultinom(n,1,rep(1/kr,kr)))
           W[,,1]=t(rmultinom(d,1,rep(1/kc,kc)))
+          restart <- restart + 1
         }
       }
-      # --- init marginale des partitions ----
-      #if (init=='marginalBOS'){
-      #  tmp=clustMultiBOS(x,rep(m,ncol(x)),kr,ntrials=10)$zik
-      #  for (i in 1:n) V[i,tmp[i],1]=1
-      #  tmp=clustMultiBOS(t(x),rep(m,nrow(x)),kc,ntrials=10)$zik
-      #  for (i in 1:d) W[i,tmp[i],1]=1
-      #  while (! verif(x,V[,,1],W[,,1],nbindmini))
-      #  {
-      #    print('reload BOS marginal init')
-      #    V[,,1]=0
-      #    W[,,1]=0
-      #    tmp=clustMultiBOS(x,rep(m,ncol(x)),kr,ntrials=10)$zik
-      #    for (i in 1:n) V[i,tmp[i],1]=1
-      #    tmp=clustMultiBOS(t(x),rep(m,nrow(x)),kc,ntrials=10)$zik
-      #    for (i in 1:d) W[i,tmp[i],1]=1
-      #  }
-      #}
+      
       # --- init kmeans des partitions ----
       if (init=='kmeans'){
         tmpV=kmeans(x,kr,nstart=10)
         for (i in 1:n) V[i,tmpV$cluster[i],1]=1
         tmpW=kmeans(t(x),kc,nstart=10)
         for (i in 1:d) W[i,tmpW$cluster[i],1]=1
-        while (! verif(x,V[,,1],W[,,1],kc,nbindmini))
+        restart <- 0
+        while (! verif(x,V[,,1],W[,,1],kc,nbindmini) && restart<1000)
         {
-          if(disp)print('reload kmeans init')
+          #if(disp)print('reload kmeans init')
           V[,,1]=0
           W[,,1]=0
           tmpV=kmeans(x,kr,nstart=10)
           for (i in 1:n) V[i,tmpV[i]$cluster,1]=1
           tmpW=kmeans(t(x),kc,nstart=2)
           for (i in 1:d) W[i,tmpW[i]$cluster,1]=1
+          restart <- restart + 1
         }
       }
       # init des parametres a partir des partitions
