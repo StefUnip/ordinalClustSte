@@ -1,7 +1,7 @@
 Package: ordinalClust
 Type: Package
 Title: Ordinal Data Clustering, Co-Clustering and Classification
-Version: 1.2
+Version: 1.2.1
 Date: 2017-11-16
 Author: Margot Selosse, Julien Jacques, Christophe Biernacki
 Maintainer: Margot Selosse <margot.selosse@gmail.com>
@@ -15,6 +15,6 @@ VignetteBuilder: knitr
 LazyData: true
 SystemRequirements: C++11
 NeedsCompilation: yes
-Packaged: 2017-11-18 16:55:44 UTC; Admin
+Packaged: 2018-01-08 16:54:02 UTC; Admin
 Repository: CRAN
-Date/Publication: 2017-11-18 22:28:21 UTC
+Date/Publication: 2018-01-08 22:21:31 UTC

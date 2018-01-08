@@ -1,17 +1,7 @@
 bosclustMulti <-
 function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         init='kmeans',disp=TRUE,iterordiEM=10) {
-    # ----------------------------------------------------------------------------
-    # Estimation of the latent BOS clustering model via SEM algoritm
-    # input
-    #   x  : matrice n x p de donnees ordinales (individu en ligne, variable en colonne)
-    #   kr : nb de classes en ligne  
-    #   m  : vecteur de longueur D qui definit la modalite de chaque groupe
-    #   d  : liste de longueur D qui defnit pour chaque modalite, quelles sont 
-    #        les variables du dataset qui ont cette modalite
-    #   nbSEM : nombre d'iterations de l'algo. SEM
-    #   nbburn : taille de la periode de burn
-    # ----------------------------------------------------------------------------
+    
     
     # setting progress bar
     if(disp) 
@@ -22,9 +12,9 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
       )
     }
 
-    # definir le nombre de modalite differentes :
+   # to know how many super blocks we have:
     D <- length(m)
-    # on charge en memoire les exposants des probas BOS sous forme polynomiales
+   # constant for polynomial probability (BOS) 
     tab_pejs <- list()
     for(id in 1:D){
       tab_pejs[[id]] <- tabpej(m[id])
@@ -39,7 +29,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
     }
 
 
-    #separation des deux modalites
+     # different levels separation
     xsep <- list()
     for(id in 1:D){
       xsep[[id]] <- x[,d.list[[id]]]
@@ -48,7 +38,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
     missing=FALSE
     if (sum(x==0)>0) {
       missing=TRUE
-      # imputation aleatoire lors de l'init
+
       
       miss <- list()
       for(id in 1:D){
@@ -58,13 +48,12 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
       
     }
 
-    # initialisation des partitions 0 : 
-    # en ligne :
+  
     V=array(0,c(n,kr,nbSEM+1))  
     gamma <- array(0,c(kr,nbSEM+1))
     
   
-    # initialisation des modes et precisions (mu et pi) 
+   
     mus <- list()
     ps <- list()
     res_mus <- list()
@@ -84,7 +73,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
     
 
       # ==== init ==== 
-      # --- init aleatoire des partitions ----
+       # --- aleatory initialization for partitions ----
       if (init=='random'){
         V[,,1]=t(rmultinom(n,1,rep(1/kr,kr)))
         
@@ -101,7 +90,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         
         while (! verif)
         {
-          print('reload random init')
+          #print('reload random init')
           V[,,1]=t(rmultinom(n,1,rep(1/kr,kr)))
           
           
@@ -115,7 +104,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         }
       }
 
-      # --- init kmeans des partitions ----
+      # --- kmeans initialization for partitions ----
       if (init=='kmeans'){
         #x[miss]=NA
         #tmpV=kmeans(na.omit(x),kr,nstart=10)
@@ -133,7 +122,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         
         while (! verif)
         {
-          print('reload kmeans init')
+          #print('reload kmeans init')
           V[,,1]=0
           
           
@@ -154,7 +143,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         } 
 
       }
-      # init des parametres a partir des partitions
+       # ---- parameters initialization from partitions ----
       gamma[,1]=getMeans(V[,,1])
       
       
@@ -179,10 +168,10 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         
       }
       
-      # === init des valeurs manquantes ===
+     # ---- missing values initialization ----
       if (missing){
         
-        # on remet des 0 la ou il y avait des data manquantes :
+        
         for(id in 1:D){
           xsep[[id]][miss[[id]]] <- 0
         }
@@ -193,9 +182,9 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
           for(id in 1:D){
 
             for(d in 1:nd[id]){
-              # recherche des cases manquantes
+              
               tmp = which(xsep[[id]][which(V[,k,1]==1),d]==0)
-              # simulation des data manquantes
+              # simulation
               if(length(tmp)>0){
                 probaBOS = rep(0,m[id])
                 for(im in 1:m[id]) {
@@ -212,11 +201,11 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         }
       }
       
-      # === debut du SEM ===
+      # ============  SEM ============
       for (iter in 1:nbSEM){
         if (disp) pb$tick()
         # ==== SE step ==== 
-        # --- calcul des probas pour la simulation de la partition en ligne
+       
         logprobaV=matrix(0,n,kr)
         for (i in 1:n){
           for (k in 1:kr){
@@ -267,9 +256,9 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         }
         
         
-        # --- imputation des donnees manquantes ----
+       # --- missing values imputation ----
         if (missing){
-          # on remet des 0 la ou il y avait des data manquantes
+          
           for(id in 1:D){
             xsep[[id]][miss[[id]]] <- 0
           }
@@ -331,7 +320,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         
         
       }# for iter
-      # ===== calcul des parametres (mode et median hors burn) =====
+       #===== parameters computaton (mode and median after burn-in) =====
       for (k in 1:kr){
         
         for(id in 1:D){
@@ -348,7 +337,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
       
       res_gamma=res_gamma/sum(res_gamma)
       
-      # ===== estimation des partitions et des valeurs manquantes  =====
+      # --- partition simulation  ---
 
       if(disp) 
       {
@@ -376,7 +365,6 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
 
       for (iterQ in 1:Q){
         if(disp) pb2$tick()
-        # --- simulation des partitions en ligne ---
         for (i in 1:n){
           for (k in 1:kr){
             logprobaV[i,k]=log(res_gamma[k])
@@ -409,7 +397,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         
       
         
-        # --- simulation des donnees manquantes ---
+         # --- missing values imputation ----
         if (missing){
           tmpx <- list()
           
@@ -423,9 +411,9 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
             for(id in 1:D){
               
               for(d in 1:nd[id]){
-                  # recherche des cases manquantes
+                  
                   tmp <- which(tmpx[[id]][which(Vfinal[,k,iterQ]==1),d]==0)
-                  # simulation des donnees manquantes 
+                  
                   if(length(tmp)>0){
                     probaBOS= rep(0,m[id])
                     for(im in 1:m[id]){
@@ -447,7 +435,8 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
         }# end if missing
       }#iterQ
       
-      # --- estimation de la partition finale par mode marginal ---
+       # --- final partition estimation  ---
+
       res_zr=apply(apply(Vfinal,c(1,2),sum),1,which.max)
       
       
@@ -455,7 +444,7 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
       
       
       
-      # --- estimation des valeurs manquantes par le mode marginal ---
+      # --- missing values final estimation ---
       for (i in 1:n){
         
         for(id in 1:D){
@@ -474,20 +463,27 @@ function (x,kr, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,
 
     
     #if(disp) print("computing ICL")
-    # calcul ICL Brault
-    # formule adaptee a notre cas ( 1 au lieu de m-1 param par case), mais a verifier theoriquement
+    # computing ICL
     if (!missing){
 
       
       icl=- (kr-1)/2 *log(n)
 
-      
+      #icl=- (kr-1)/2 *log(n) - (d-1)/2 *log(d)- d*kr/2 *log(n*d)
+
+      for(id in 1:D){
+        icl = icl - (nd[id]-1)/2 *log(nd[id])- nd[id]*kr/2 *log(n*nd[id])
+      }
 
 
       for(i in 1:n){
         for(k in 1:kr){
-          icl = icl + res_V[i,k] * log (res_gamma[k])
+          icl = icl + res_V[i,k] * log(res_gamma[k])
         }
+      }
+
+      for(id in 1:D){
+        icl = icl +  nd[id]*log(1/nd[id])  
       }
       
       

@@ -67,8 +67,8 @@ Number of iterations for the internal EM algorithm that estimates the parameters
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
   \item{xhat}{dataset completed with missing values completed.}
-  \item{mus}{For each iteration, an array of dimension kr*kc that represents the mus that were estimated at each iteration for group d.}
-  \item{ps}{For each iteration, an array of dimension kr*kc that represents the pis that were estimated at each iteration for group d.} 
+  \item{mus}{For each iteration, an array of dimension kr*kc that represents the mus that were estimated at each iteration.}
+  \item{ps}{For each iteration, an array of dimension kr*kc that represents the pis that were estimated at each iteration.} 
   \item{gamma}{Array of gammas (row mixing proportions) that were estimated at each iteration.}
   \item{rho}{Array of rhos (columns mixing proportions) that were estimated at each iteration.}
   \item{V}{For each iteration, array of dimension N*G such that V[i,g]=1 if i belongs to cluster g}

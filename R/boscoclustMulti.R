@@ -1,19 +1,6 @@
 boscoclustMulti <-
 function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
   disp=TRUE,iterordiEM=10) {
-    # ----------------------------------------------------------------------------
-    # Estimation of the Multiple latent BOS coclustering model via SEM algoritm
-    # input
-    #   x  : n x p matrix of ordinal data (lines = observations, columns = features)
-    #   kc : vector of length D which defines the number of cluster in columns  
-    #        for each group
-    #   kr : number of clusters in lines 
-    #   m  : vector of length D wich defines the number of modalities for each group
-    #   d.list  : list of length D which defines for each group the column  
-    #        indexes of x related to this group
-    #   nbSEM : number of iterations for the SEM algorithm
-    #   nbSEMburn : size of the burn period
-    # ----------------------------------------------------------------------------
     # setting progress bar
     if(disp) 
     {
@@ -23,9 +10,9 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
       )
     }
 
-    # definir le nombre de modalite differentes :
+    # to know how many super blocks we have:
     D <- length(m)
-    # on charge en memoire les exposants des probas BOS sous forme polynomiales
+    # constant for polynomial probability (BOS) 
     tab_pejs <- list()
     for(id in 1:D){
       tab_pejs[[id]] <- tabpej(m[id])
@@ -40,7 +27,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
     }
 
 
-    #separation des deux modalites
+    # different levels separation
     xsep <- list()
     for(id in 1:D){
       xsep[[id]] <- x[,d.list[[id]]]
@@ -49,7 +36,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
     missing=FALSE
     if (sum(x==0)>0) {
       missing=TRUE
-      # imputation aleatoire lors de l'init
+      
       
       miss <- list()
       for(id in 1:D){
@@ -60,21 +47,21 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
       
     }
     loglik=rep(-Inf)
-    # initialization of partitions : 
-    # en ligne :
+    # --- aleatory initialization for partitions ----
+    # lines :
     V=array(0,c(n,kr,nbSEM+1))
     W <- list()
     for(id in 1:D){
       W[[id]] <- array(0, c(nd[id], kc[id],nbSEM+1))
     }
-    # en colonnes :  
+    # columns :  
     gamma <- array(0,c(kr,nbSEM+1))
     rho <- list()
     for(id in 1:D){
       rho[[id]] <- array(0, c(kc[id], nbSEM+1))
     }
   
-    # initialisation des modes et precisions (mu et pi) 
+    # params initialisation  
     mus <- list()
     ps <- list()
     res_mus <- list()
@@ -109,7 +96,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
 
 
       # ==== init ==== 
-      # --- init aleatoire des partitions ----
+      # --- aleatory initialization for partitions ----
       if (init=='random'){
         V[,,1]=t(rmultinom(n,1,rep(1/kr,kr)))
         
@@ -146,7 +133,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
         }
       }
 
-      # --- init kmeans des partitions ----
+       # --- kmeans initialization for partitions ----
       if (init=='kmeans'){
         #x[miss]=NA
         #tmpV=kmeans(na.omit(x),kr,nstart=10)
@@ -196,7 +183,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
           }
         }  
       }
-      # init des parametres a partir des partitions
+      # ---- parameters initialization from partitions ----
       gamma[,1]=getMeans(V[,,1])
       for(id in 1:D){
         rho[[id]][,1]=getMeans(W[[id]][,,1])
@@ -227,10 +214,10 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
         
       }
       
-      # === init des valeurs manquantes ===
+     
       if (missing){
         
-        # on remet des 0 la ou il y avait des data manquantes :
+        
         for(id in 1:D){
           xsep[[id]][miss[[id]]] <- 0
         }
@@ -240,9 +227,9 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
           
           for(id in 1:D){
             for(h in 1:kc[id]){
-              # recherche des cases manquantes
+              
               tmp = which(xsep[[id]][which(V[,k,1]==1),which(W[[id]][,h,1]==1)]==0)
-              # simulation des data manquantes
+              
               if(length(tmp)>0){
                 probaBOS = rep(0,m[id])
                 for(im in 1:m[id]) {
@@ -257,11 +244,11 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
         }
       }
       
-      # === debut du SEM ===
+      # ============  SEM ============
       for (iter in 1:nbSEM){
         if (disp) pb$tick()
         # ==== SE step ==== 
-        # --- calcul des probas pour la simulation de la partition en ligne
+        
       logprobaV=matrix(log(gamma[,iter]),nrow=n,ncol=kr,byrow = T)
       logprobaW = list()
       for(id in 1:D){
@@ -297,8 +284,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
       }
       
       
-      # --- calcul des proba pour la simulation de la partition en colonne
-
+      
       if(iter == 1){
         probaWold = list();
         probaW = list();
@@ -354,9 +340,9 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
         }
         
         
-        # --- imputation des donnees manquantes ----
+        # --- missing vaues imputation ----
         if (missing){
-          # on remet des 0 la ou il y avait des data manquantes
+          
           for(id in 1:D){
             xsep[[id]][miss[[id]]] <- 0
           }
@@ -415,7 +401,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
           }
         
       }# for iter
-      # ===== calcul des parametres (mode et median hors burn) =====
+       #===== parameters computaton (mode and median after burn-in) =====
       for (k in 1:kr){
         
         for(id in 1:D){
@@ -434,7 +420,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
       
       res_gamma=res_gamma/sum(res_gamma)
       
-      # ===== estimation des partitions et des valeurs manquantes  =====
+      # --- partition simulation  ---
 
       if(disp) 
       {
@@ -465,7 +451,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
 
       for (iterQ in 1:Q){
         if(disp) pb2$tick()
-        # --- simulation des partitions en ligne et en colonne ---
+        
         
         logprobaV=matrix(log(res_gamma),nrow=n,ncol=kr,byrow = T)
         logprobaW = list()
@@ -508,7 +494,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
         }
         
       
-        # --- simulation des donnees manquantes ---
+       
         if (missing){
           tmpx <- list()
           
@@ -521,7 +507,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
             
             for(id in 1:D){
               for(h in 1:kc[id]){
-                # searching for missing values
+                
                 tmp <- which(tmpx[[id]][which(Vfinal[,k,iterQ]==1), which(Wfinal[[id]][,h,iterQ]==1)]==0)
                 # simulation for missing values
                 if(length(tmp)>0){
@@ -543,7 +529,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
         }# end if missing
       }#iterQ
       
-      # --- estimation de la partition finale par mode marginal ---
+      # --- final partition estimation  ---
       res_zr=apply(apply(Vfinal,c(1,2),sum),1,which.max)
       for(id in 1:D){
         res_zc[[id]] <- 
@@ -558,14 +544,14 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
       }
       
       
-      # --- estimation des valeurs manquantes par le mode marginal ---
+     # --- missing values final estimation ---
       for (i in 1:n){
         
         for(id in 1:D){
           for(d in 1:nd[id]){
             if(xsep[[id]][i,d]==0) xsep[[id]][i,d] = mode(Xhat[[id]][i,d,])
           }
-          # --- sauvegarde de la matrice completee ---
+         
           Xhat[[id]] <- xsep[[id]]
         }
 
@@ -573,8 +559,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
       
 
     
-    # if(disp) print("estimating partitions")
-    # estimation des partitions
+    
     zr=res_zr
     zc <- list()
     for(id in 1:D){
@@ -582,8 +567,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
     }
 
     #if(disp) print("computing ICL")
-    # calcul ICL Brault
-    # formule adaptee a notre cas ( 1 au lieu de m-1 param par case), mais a verifier theoriquement
+    # computing ICL
     if (!missing){
 
       
@@ -676,11 +660,7 @@ function (x,kr,kc, m, d.list, nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
     }#if(!missing)
     # --- return the result ---
     
-    # mus <- list()
-    # ps <- list()
-    # rho <- list()
-    # V <- list()
-    # W <- list()
+  
     
     
     for(id in 1:D){

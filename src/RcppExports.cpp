@@ -6,16 +6,6 @@
 
 using namespace Rcpp;
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _ordinalClust_rcpp_hello_world() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
-    return rcpp_result_gen;
-END_RCPP
-}
 // unsigned_to_signed
 int unsigned_to_signed(unsigned x);
 RcppExport SEXP _ordinalClust_unsigned_to_signed(SEXP xSEXP) {
@@ -153,24 +143,4 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(ordiemCpp(m, tab_pej, x, tabmu0, tabp0, eps, iter_max));
     return rcpp_result_gen;
 END_RCPP
-}
-
-static const R_CallMethodDef CallEntries[] = {
-    {"_ordinalClust_rcpp_hello_world", (DL_FUNC) &_ordinalClust_rcpp_hello_world, 0},
-    {"_ordinalClust_unsigned_to_signed", (DL_FUNC) &_ordinalClust_unsigned_to_signed, 1},
-    {"_ordinalClust_compare_vec", (DL_FUNC) &_ordinalClust_compare_vec, 2},
-    {"_ordinalClust_allej", (DL_FUNC) &_ordinalClust_allej, 2},
-    {"_ordinalClust_pejp1_yjej", (DL_FUNC) &_ordinalClust_pejp1_yjej, 5},
-    {"_ordinalClust_pejp1zj1_yjej", (DL_FUNC) &_ordinalClust_pejp1zj1_yjej, 5},
-    {"_ordinalClust_pejp1zj1_ej", (DL_FUNC) &_ordinalClust_pejp1zj1_ej, 4},
-    {"_ordinalClust_pyj_ej", (DL_FUNC) &_ordinalClust_pyj_ej, 2},
-    {"_ordinalClust_pejp1_ej", (DL_FUNC) &_ordinalClust_pejp1_ej, 4},
-    {"_ordinalClust_pej", (DL_FUNC) &_ordinalClust_pej, 6},
-    {"_ordinalClust_ordiemCpp", (DL_FUNC) &_ordinalClust_ordiemCpp, 7},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_ordinalClust(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
 }

@@ -108,7 +108,7 @@ bosclassif.kc <-
         x[miss]=0 
         for (l in 1:kc){
           for (k in 1:kr){
-            # recherche des cases manquantes
+
             tmp=which(x[which(V[,k]==1),which(W[,l,1]==1)]==0)
             # simulation 
             if (length(tmp)>0){
@@ -205,7 +205,7 @@ bosclassif.kc <-
             }
           
         }# for iter
-        # ===== parameters computaton (mode and median after burn-in) =====
+        # ===== parameters computation (mode and median after burn-in) =====
         for (l in 1:kc){
           res_rho[l]=median(rho[l,nbSEMburn:(nbSEM+1)])
           for (k in 1:kr){

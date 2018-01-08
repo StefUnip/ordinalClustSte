@@ -75,11 +75,11 @@ Number of iterations for the internal EM algorithm that estimates the parameters
 %% ...
 
   \item{probas.to.predict}{Matrix with nrow=nrow(to.predict) and ncol=kr. For each observation of argument to.predict, indicates the probability to  belong to each class.}
-  \item{zr.to.predict}{Vector of length nrow(to.predict) which indicates at which class the obesrvations of to predict has been asscoiated.}
-  \item{V.to.predict}{Matrix with nrow=nrow(to.predict) and ncol=kr. Indicates at which class the observations of to.predict has been asscoiated.}
-  \item{xhat}{dataset completed with missing values completed.}
-  \item{mus}{For each iteration, an array of dimension kr*kc that represents the mus that were estimated at each iteration for group d.}
-  \item{ps}{For each iteration, an array of dimension kr*kc that represents the pis that were estimated at each iteration for group d.} 
+  \item{zr.to.predict}{Vector of length nrow(to.predict) which indicates at which class the observations of to predict has been associated.}
+  \item{V.to.predict}{Matrix with nrow=nrow(to.predict) and ncol=kr. Indicates at which class the observations of to.predict has been associated.}
+  \item{xhat}{dataset with missing values completed.}
+  \item{mus}{For each iteration, an array of dimension kr*kc that represents the mus that were estimated at each iteration.}
+  \item{ps}{For each iteration, an array of dimension kr*kc that represents the pis that were estimated at each iteration.} 
   \item{gamma}{Array of gammas (row mixing proportions) that were estimated at each iteration.}
   \item{rho}{Array of rhos (columns mixing proportions) that were estimated at each iteration.}
   \item{W}{For each iteration, array of dimension J*H such that W[j,h]=1 if j belongs to cluster h.}

@@ -101,13 +101,13 @@ bosclassifMulti.kc <-
 
       # ==== init ==== 
       missing=TRUE
-      # --- init aleatoire des partitions ----
+      # --- aleatory initialization for partitions ----
       if (init=='random'){
         for(id in 1:D){
           W[[id]][,,1]=t(rmultinom(nd[id],1,rep(1/kc[id],kc[id])))
           while (! verif(xsep[[id]],V,W[[id]][,,1],kc[id],nbindmini))
           {
-            print('reload random init')
+            #print('reload random init')
             W[[id]][,,1]=t(rmultinom(nd[id],1,rep(1/kc[id],kc[id])))
           }
         }
@@ -120,7 +120,7 @@ bosclassifMulti.kc <-
           for (i in 1:nd[id]) W[[id]][i,tmpW$cluster[i],1]=1
           while (! verif(xsep[[id]],V,W[[id]][,,1],kc[id],nbindmini))
           {
-            print('reload kmeans init')
+            #print('reload kmeans init')
             W[[id]][,,1]=0
             tmpW=kmeans(t(xsep[[id]]),kc[id],nstart=2)  
             for (i in 1:nd[id]) W[[id]][i,tmpW[i]$cluster,1]=1
@@ -128,13 +128,12 @@ bosclassifMulti.kc <-
         }
           
       }
-      # init des parametres a partir des partitions
+      # ---- parameters initialization from partitions ----
       for(id in 1:D){
         rho[[id]][,1]=getMeans(W[[id]][,,1])
         for (l in 1:kc[id]){
           for (k in 1:kr){
-            # init des parametres en fonction des partitions aleatoires
-            # res=ordiem(as.vector(x[which(V[,k,1]==1),which(W[,l,1]==1)]),m,tabmu0=1:m,tabp0=seq(0,1,0.2),iter_max=iterordiEM)
+           
             res <- ordiemCpp(m[id],tab_pejs[[id]],as.vector(xsep[[id]][which(V[,k]==1),
                                                    which(W[[id]][,l,1]==1)]),
                              tabmu0=1:m[id],tabp0=seq(0,1,0.2),
@@ -150,7 +149,7 @@ bosclassifMulti.kc <-
         }
       }
       
-
+      # ---- missing values initialization ----
       if (missing){
         for(id in 1:D){
           xsep[[id]][miss[[id]]]=0 
@@ -232,7 +231,7 @@ bosclassifMulti.kc <-
         }
 
 
-         # --- missing vaues imputation ----
+         # --- missing values imputation ----
         if (missing){
           for(id in 1:D){
             xsep[[id]][miss[[id]]]=0 
@@ -282,7 +281,7 @@ bosclassifMulti.kc <-
           
         
       }# for iter
-      # ===== calcul des parametres (mode et median hors burn) =====
+      #===== parameters computaton (mode and median after burn-in) =====
       for(id in 1:D){
         for (l in 1:kc[id]){
           res_rho[[id]][l]=median(rho[[id]][l,nbSEMburn:(nbSEM+1)])
@@ -366,7 +365,6 @@ bosclassifMulti.kc <-
         }
       }#iterQ
        # --- final partition estimation  ---
-
 
       for(id in 1:D){
         res_zc[[id]]=apply(apply(Wfinal[[id]],c(1,2),sum),1,which.max)

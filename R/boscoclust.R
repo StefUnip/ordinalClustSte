@@ -1,16 +1,7 @@
 boscoclust <-
   function (x,kr,kc,m,nbSEM=50,nbSEMburn=20,nbindmini=4,init='kmeans',
             disp=TRUE,iterordiEM=10) {
-    # ----------------------------------------------------------------------------
-    # Estimation of the latent BOS coclustering model via SEM algoritm
-    # input
-    #   x  : matrice n x p de donnees ordinales (individu en ligne, variable en colonne)
-    #   kc : nb de classes en colonne
-    #   kr : nb de classes en ligne
-    #   m  : nombre de modalites (identique pour toutes les variables)
-    #   nbSEM : nombre d'iterations de l'algo. SEM
-    #   nbburn : taille de la periode de burn
-    # ----------------------------------------------------------------------------
+   
     # setting progress bar
     if(disp)
     {
@@ -20,7 +11,7 @@ boscoclust <-
       )
     }
 
-    # on charge en memoire les exposants des probas BOS sous forme polynomiales
+    # constant for polynomial probability (BOS) 
     tab_pej=tabpej(m)
     # ---
     n=nrow(x)
@@ -28,7 +19,6 @@ boscoclust <-
     missing=FALSE
     if (sum(x==0)>0) {
       missing=TRUE
-      # imputation aleatoire lors de l'init
       miss=which(x==0)
       x[miss]=sample(1:m,sum(x==0),replace=TRUE)
     }
@@ -51,7 +41,7 @@ boscoclust <-
 
 
       # ==== init ====
-      # --- init aleatoire des partitions ----
+       # --- aleatory initialization for partitions ----
       if (init=='random'){
         V[,,1]=t(rmultinom(n,1,rep(1/kr,kr)))
         W[,,1]=t(rmultinom(d,1,rep(1/kc,kc)))
@@ -65,7 +55,7 @@ boscoclust <-
         }
       }
       
-      # --- init kmeans des partitions ----
+      # --- kmeans initialization for partitions ----
       if (init=='kmeans'){
         tmpV=kmeans(x,kr,nstart=10)
         for (i in 1:n) V[i,tmpV$cluster[i],1]=1
@@ -84,13 +74,12 @@ boscoclust <-
           restart <- restart + 1
         }
       }
-      # init des parametres a partir des partitions
+      # ---- parameters initialization from partitions ----
       gamma[,1]=colMeans(V[,,1])
       rho[,1]=colMeans(W[,,1])
       for (l in 1:kc){
         for (k in 1:kr){
-          # init des parametres en fonction des partitions aleatoires
-          # res=ordiem(as.vector(x[which(V[,k,1]==1),which(W[,l,1]==1)]),m,tabmu0=1:m,tabp0=seq(0,1,0.2),iter_max=iterordiEM)
+          
           res <- ordiemCpp(m,tab_pej,as.vector(x[which(V[,k,1]==1),
                                                  which(W[,l,1]==1)]),
                            tabmu0=1:m,tabp0=seq(0,1,0.2),
@@ -104,14 +93,14 @@ boscoclust <-
           }
         }
       }
-      # === init des valeurs manquantes ===
+       # ---- missing values initialization ----
       if (missing){
-        x[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+        x[miss]=0 
         for (l in 1:kc){
           for (k in 1:kr){
-            # recherche des cases manquantes
+            
             tmp=which(x[which(V[,k,1]==1),which(W[,l,1]==1)]==0)
-            # simulation des data manquantes
+            
             if (length(tmp)>0){
               probaBOS=rep(0,m)
               for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,mu[k,l,1],]*(rep(p[k,l,1],m)^(0:(m-1)))))
@@ -120,11 +109,10 @@ boscoclust <-
           }
         }
       }
-    # === debut du SEM ===
+    # ============  SEM ============
     for (iter in 1:nbSEM){
       if (disp) pb$tick()
       # ==== SE step ====
-      # --- calcul des probas pour la simulation de la partition en ligne
       logprobaV=matrix(log(gamma[,iter]),nrow=n,ncol=kr,byrow = T)
       logprobaW=matrix(log(rho[,iter]),nrow=d,ncol=kc,byrow = T)
       for (k in 1:kr){
@@ -147,7 +135,6 @@ boscoclust <-
         tmp=logsum (logprobaV[i,])
         probaV[i,]=exp ( logprobaV[i,] - tmp )
       }
-      # --- calcul des proba pour la simulation de la partition en colonne
       if (iter>1) probaWold=probaW
       probaW=matrix(0,d,kc)
       for (h in 1:d){
@@ -174,14 +161,14 @@ boscoclust <-
           #cat('restart number ',restart,'\n')
         }
       }
-      # --- imputation des donnees manquantes ----
+      # --- missing values imputation ----
       if (missing){
-        x[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+        x[miss]=0 
         for (l in 1:kc){
           for (k in 1:kr){
-            # recherche des cases manquantes
+           
             tmp=which(x[which(V[,k,iter+1]==1),which(W[,l,iter+1]==1)]==0)
-            # simulation des data manquantes
+            
             if (length(tmp)>0){
               probaBOS=rep(0,m)
               for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,mu[k,l,iter],]*(rep(p[k,l,iter],m)^(0:(m-1)))))
@@ -219,7 +206,7 @@ boscoclust <-
         }
       
     }# for iter
-    # ===== calcul des parametres (mode et median hors burn) =====
+    #===== parameters computaton (mode and median after burn-in) =====
     for (l in 1:kc){
       res_rho[l]=median(rho[l,nbSEMburn:(nbSEM+1)])
       for (k in 1:kr){
@@ -230,7 +217,7 @@ boscoclust <-
     }
     res_rho=res_rho/sum(res_rho)
     res_gamma=res_gamma/sum(res_gamma)
-    # ===== estimation des partitions et des valeurs manquantes  =====
+     # --- partition simulation  ---
 
     if(disp)
     {
@@ -279,15 +266,13 @@ boscoclust <-
           probaW[h,]=exp ( logprobaW[h,] -  tmp)
           Wfinal[h,,iterQ+1]=rmultinom(1,1,probaW[h,])
         }
-        # --- simulation des donnees manquantes ---
+         # --- missing values imputation ----
         if (missing){
           tmpx=x
-          tmpx[miss]=0 # on remet des 0 la ou il y avait des data manquantes
+          tmpx[miss]=0 
           for (l in 1:kc){
             for (k in 1:kr){
-              # recherche des cases manquantes
               tmp=which(tmpx[which(Vfinal[,k,iterQ]==1),which(Wfinal[,l,iterQ]==1)]==0)
-              # simulation des data manquantes
               if (length(tmp)>0){
                 probaBOS=rep(0,m)
                 for (im in 1:m) probaBOS[im]=(sum(tab_pej[im,res_mu[k,l],]*(rep(res_p[k,l],m)^(0:(m-1)))))
@@ -298,36 +283,38 @@ boscoclust <-
           Xhat[,,iterQ+1]=tmpx
         }
       }#iterQ
-      # --- estimation de la partition finale par mode marginal ---
+       # --- final partition estimation  ---
+
       res_zr=apply(apply(Vfinal,c(1,2),sum),1,which.max)
       res_zc=apply(apply(Wfinal,c(1,2),sum),1,which.max)
       for (i in 1:n) res_V[i,res_zr[i]]=1
       for (h in 1:d) res_W[h,res_zc[h]]=1
-      # --- estimation des valeurs manquantes par le mode marginal ---
+       # --- missing values final estimation ---
       for (i in 1:n){
         for (h in 1:d){
           if (x[i,h]==0) x[i,h]=mode(Xhat[i,h,])
         }
       }
-      # --- sauvegarde de la matrice completee ---
+     
       xhat=x
 
 
-    # estimation des partitions
+   # partition estimation
     zr=res_zr
     zc=res_zc
-    # calcul ICL Brault
-    # formule adaptee a notre cas ( 1 au lieu de m-1 param par case), mais a verifier theoriquement
+    # comptuing ICL 
     if (!missing){
-      icl=- (kr-1)/2 *log(n)- (kc-1)/2 *log(d)- kc*kr/2 *log(n*d)
+      icl=- (kr-1)/2 *log(n) - (kc-1)/2 *log(d)- kc*kr/2 *log(n*d)
       for(i in 1:n){
         for(k in 1:kr){
           icl = icl + res_V[i,k] * log (res_gamma[k])
-        }}
+        }
+      }
       for (h in 1:d){
         for (l in 1:kc){
           icl = icl + res_W[h,l] * log (res_rho[l])
-        }}
+        }
+      }
       for (h in 1:d){
         for (l in 1:kc){
           for(i in 1:n){
@@ -340,7 +327,6 @@ boscoclust <-
     }
     else{
 
-      # --  fin approximation par moyenne harmonique --
       icl=- (kr-1)/2 *log(n)- (kc-1)/2 *log(d)- kc*kr/2 *log(n*d)
       for(i in 1:n){
         for(k in 1:kr){
