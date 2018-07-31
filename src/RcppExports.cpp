@@ -6,31 +6,97 @@
 
 using namespace Rcpp;
 
-// unsigned_to_signed
-int unsigned_to_signed(unsigned x);
-RcppExport SEXP _ordinalClust_unsigned_to_signed(SEXP xSEXP) {
+// coclust
+S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList, int kr, std::vector<int> kc, std::string init, int nbSEM, int nbSEMburn, int nbRepeat, int nbindmini, const std::vector<int> m);
+RcppExport SEXP _ordinalClust_coclust(SEXP xMatSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP kcSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbRepeatSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(unsigned_to_signed(x));
+    Rcpp::traits::input_parameter< NumericMatrix >::type xMat(xMatSEXP);
+    Rcpp::traits::input_parameter< std::vector<unsigned int> >::type myList(myListSEXP);
+    Rcpp::traits::input_parameter< int >::type kr(krSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type kc(kcSEXP);
+    Rcpp::traits::input_parameter< std::string >::type init(initSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEM(nbSEMSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEMburn(nbSEMburnSEXP);
+    Rcpp::traits::input_parameter< int >::type nbRepeat(nbRepeatSEXP);
+    Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(coclust(xMat, myList, kr, kc, init, nbSEM, nbSEMburn, nbRepeat, nbindmini, m));
     return rcpp_result_gen;
 END_RCPP
 }
-// compare_vec
-bool compare_vec(arma::urowvec vec1, arma::rowvec vec2);
-RcppExport SEXP _ordinalClust_compare_vec(SEXP vec1SEXP, SEXP vec2SEXP) {
+// clust
+S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList, int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m);
+RcppExport SEXP _ordinalClust_clust(SEXP xMatSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::urowvec >::type vec1(vec1SEXP);
-    Rcpp::traits::input_parameter< arma::rowvec >::type vec2(vec2SEXP);
-    rcpp_result_gen = Rcpp::wrap(compare_vec(vec1, vec2));
+    Rcpp::traits::input_parameter< NumericMatrix >::type xMat(xMatSEXP);
+    Rcpp::traits::input_parameter< std::vector<unsigned int> >::type myList(myListSEXP);
+    Rcpp::traits::input_parameter< int >::type kr(krSEXP);
+    Rcpp::traits::input_parameter< std::string >::type init(initSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEM(nbSEMSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEMburn(nbSEMburnSEXP);
+    Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(clust(xMat, myList, kr, init, nbSEM, nbSEMburn, nbindmini, m));
+    return rcpp_result_gen;
+END_RCPP
+}
+// classif
+S4 classif(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myList, int kr, std::vector<int> kc, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m);
+RcppExport SEXP _ordinalClust_classif(SEXP xMatSEXP, SEXP yVecSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP kcSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type xMat(xMatSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type yVec(yVecSEXP);
+    Rcpp::traits::input_parameter< std::vector<unsigned int> >::type myList(myListSEXP);
+    Rcpp::traits::input_parameter< int >::type kr(krSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type kc(kcSEXP);
+    Rcpp::traits::input_parameter< std::string >::type init(initSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEM(nbSEMSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEMburn(nbSEMburnSEXP);
+    Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(classif(xMat, yVec, myList, kr, kc, init, nbSEM, nbSEMburn, nbindmini, m));
+    return rcpp_result_gen;
+END_RCPP
+}
+// classifM
+S4 classifM(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myList, int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m);
+RcppExport SEXP _ordinalClust_classifM(SEXP xMatSEXP, SEXP yVecSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type xMat(xMatSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type yVec(yVecSEXP);
+    Rcpp::traits::input_parameter< std::vector<unsigned int> >::type myList(myListSEXP);
+    Rcpp::traits::input_parameter< int >::type kr(krSEXP);
+    Rcpp::traits::input_parameter< std::string >::type init(initSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEM(nbSEMSEXP);
+    Rcpp::traits::input_parameter< int >::type nbSEMburn(nbSEMburnSEXP);
+    Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(classifM(xMat, yVec, myList, kr, init, nbSEM, nbSEMburn, nbindmini, m));
+    return rcpp_result_gen;
+END_RCPP
+}
+// prediction
+S4 prediction(S4 classif, NumericMatrix xMat_topredict);
+RcppExport SEXP _ordinalClust_prediction(SEXP classifSEXP, SEXP xMat_topredictSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< S4 >::type classif(classifSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type xMat_topredict(xMat_topredictSEXP);
+    rcpp_result_gen = Rcpp::wrap(prediction(classif, xMat_topredict));
     return rcpp_result_gen;
 END_RCPP
 }
 // allej
-arma::umat allej(int j, int m);
+NumericMatrix allej(int j, int m);
 RcppExport SEXP _ordinalClust_allej(SEXP jSEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -41,106 +107,65 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// pejp1_yjej
-double pejp1_yjej(arma::urowvec ejp1, int yj, arma::urowvec ej, int mu, double p);
-RcppExport SEXP _ordinalClust_pejp1_yjej(SEXP ejp1SEXP, SEXP yjSEXP, SEXP ejSEXP, SEXP muSEXP, SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::urowvec >::type ejp1(ejp1SEXP);
-    Rcpp::traits::input_parameter< int >::type yj(yjSEXP);
-    Rcpp::traits::input_parameter< arma::urowvec >::type ej(ejSEXP);
-    Rcpp::traits::input_parameter< int >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< double >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(pejp1_yjej(ejp1, yj, ej, mu, p));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pejp1zj1_yjej
-double pejp1zj1_yjej(arma::urowvec ejp1, unsigned int yj, arma::urowvec ej, int mu, double p);
-RcppExport SEXP _ordinalClust_pejp1zj1_yjej(SEXP ejp1SEXP, SEXP yjSEXP, SEXP ejSEXP, SEXP muSEXP, SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::urowvec >::type ejp1(ejp1SEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type yj(yjSEXP);
-    Rcpp::traits::input_parameter< arma::urowvec >::type ej(ejSEXP);
-    Rcpp::traits::input_parameter< int >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< double >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(pejp1zj1_yjej(ejp1, yj, ej, mu, p));
-    return rcpp_result_gen;
-END_RCPP
-}
 // pejp1zj1_ej
-double pejp1zj1_ej(arma::urowvec ejp1, arma::urowvec ej, int mu, double p);
-RcppExport SEXP _ordinalClust_pejp1zj1_ej(SEXP ejp1SEXP, SEXP ejSEXP, SEXP muSEXP, SEXP pSEXP) {
+double pejp1zj1_ej(NumericVector ejp1Vec, NumericVector ejVec, int mu, double p);
+RcppExport SEXP _ordinalClust_pejp1zj1_ej(SEXP ejp1VecSEXP, SEXP ejVecSEXP, SEXP muSEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::urowvec >::type ejp1(ejp1SEXP);
-    Rcpp::traits::input_parameter< arma::urowvec >::type ej(ejSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ejp1Vec(ejp1VecSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ejVec(ejVecSEXP);
     Rcpp::traits::input_parameter< int >::type mu(muSEXP);
     Rcpp::traits::input_parameter< double >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(pejp1zj1_ej(ejp1, ej, mu, p));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pyj_ej
-double pyj_ej(unsigned int yj, arma::urowvec ej);
-RcppExport SEXP _ordinalClust_pyj_ej(SEXP yjSEXP, SEXP ejSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned int >::type yj(yjSEXP);
-    Rcpp::traits::input_parameter< arma::urowvec >::type ej(ejSEXP);
-    rcpp_result_gen = Rcpp::wrap(pyj_ej(yj, ej));
+    rcpp_result_gen = Rcpp::wrap(pejp1zj1_ej(ejp1Vec, ejVec, mu, p));
     return rcpp_result_gen;
 END_RCPP
 }
 // pejp1_ej
-double pejp1_ej(arma::urowvec ejp1, arma::urowvec ej, int mu, double p);
-RcppExport SEXP _ordinalClust_pejp1_ej(SEXP ejp1SEXP, SEXP ejSEXP, SEXP muSEXP, SEXP pSEXP) {
+double pejp1_ej(NumericVector ejp1Vec, NumericVector ejVec, int mu, double p);
+RcppExport SEXP _ordinalClust_pejp1_ej(SEXP ejp1VecSEXP, SEXP ejVecSEXP, SEXP muSEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::urowvec >::type ejp1(ejp1SEXP);
-    Rcpp::traits::input_parameter< arma::urowvec >::type ej(ejSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ejp1Vec(ejp1VecSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ejVec(ejVecSEXP);
     Rcpp::traits::input_parameter< int >::type mu(muSEXP);
     Rcpp::traits::input_parameter< double >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(pejp1_ej(ejp1, ej, mu, p));
+    rcpp_result_gen = Rcpp::wrap(pejp1_ej(ejp1Vec, ejVec, mu, p));
     return rcpp_result_gen;
 END_RCPP
 }
 // pej
-double pej(arma::urowvec& ej, int j, int m, int mu, double p, arma::colvec& z1tozjm1);
-RcppExport SEXP _ordinalClust_pej(SEXP ejSEXP, SEXP jSEXP, SEXP mSEXP, SEXP muSEXP, SEXP pSEXP, SEXP z1tozjm1SEXP) {
+double pej(NumericVector ejVec, int j, int m, int mu, double p, NumericVector z1tozjm1Vec);
+RcppExport SEXP _ordinalClust_pej(SEXP ejVecSEXP, SEXP jSEXP, SEXP mSEXP, SEXP muSEXP, SEXP pSEXP, SEXP z1tozjm1VecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::urowvec& >::type ej(ejSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ejVec(ejVecSEXP);
     Rcpp::traits::input_parameter< int >::type j(jSEXP);
     Rcpp::traits::input_parameter< int >::type m(mSEXP);
     Rcpp::traits::input_parameter< int >::type mu(muSEXP);
     Rcpp::traits::input_parameter< double >::type p(pSEXP);
-    Rcpp::traits::input_parameter< arma::colvec& >::type z1tozjm1(z1tozjm1SEXP);
-    rcpp_result_gen = Rcpp::wrap(pej(ej, j, m, mu, p, z1tozjm1));
+    Rcpp::traits::input_parameter< NumericVector >::type z1tozjm1Vec(z1tozjm1VecSEXP);
+    rcpp_result_gen = Rcpp::wrap(pej(ejVec, j, m, mu, p, z1tozjm1Vec));
     return rcpp_result_gen;
 END_RCPP
 }
-// ordiemCpp
-List ordiemCpp(int m, const arma::cube& tab_pej, const arma::colvec& x, const arma::colvec& tabmu0, const arma::colvec& tabp0, double eps, int iter_max);
-RcppExport SEXP _ordinalClust_ordiemCpp(SEXP mSEXP, SEXP tab_pejSEXP, SEXP xSEXP, SEXP tabmu0SEXP, SEXP tabp0SEXP, SEXP epsSEXP, SEXP iter_maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type m(mSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type tab_pej(tab_pejSEXP);
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::colvec& >::type tabmu0(tabmu0SEXP);
-    Rcpp::traits::input_parameter< const arma::colvec& >::type tabp0(tabp0SEXP);
-    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
-    Rcpp::traits::input_parameter< int >::type iter_max(iter_maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(ordiemCpp(m, tab_pej, x, tabmu0, tabp0, eps, iter_max));
-    return rcpp_result_gen;
-END_RCPP
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_ordinalClust_coclust", (DL_FUNC) &_ordinalClust_coclust, 10},
+    {"_ordinalClust_clust", (DL_FUNC) &_ordinalClust_clust, 8},
+    {"_ordinalClust_classif", (DL_FUNC) &_ordinalClust_classif, 10},
+    {"_ordinalClust_classifM", (DL_FUNC) &_ordinalClust_classifM, 9},
+    {"_ordinalClust_prediction", (DL_FUNC) &_ordinalClust_prediction, 2},
+    {"_ordinalClust_allej", (DL_FUNC) &_ordinalClust_allej, 2},
+    {"_ordinalClust_pejp1zj1_ej", (DL_FUNC) &_ordinalClust_pejp1zj1_ej, 4},
+    {"_ordinalClust_pejp1_ej", (DL_FUNC) &_ordinalClust_pejp1_ej, 4},
+    {"_ordinalClust_pej", (DL_FUNC) &_ordinalClust_pej, 6},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_ordinalClust(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

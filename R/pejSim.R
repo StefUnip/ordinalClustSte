@@ -1,4 +1,4 @@
-pejSim<-
+pejSim <-
   function(ej,m,mu,p){
     # ----------------------------------------------------------------------------
     # Proba ej (unconditional) with a hierarchical random dichotomic model.

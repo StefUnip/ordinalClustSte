@@ -10,51 +10,50 @@ boscoclust
 This function performs a co-clustering on ordinal data by using the latent block model (cf references for further  details). A BOS distribution is used, and the parameters inference is realized with an SEM-Gbbs algorithm.
 }
 \usage{
-boscoclust(x,kr,kc,m,nbSEM=50,nbSEMburn=20,nbindmini=4,
-  init='kmeans',disp=TRUE,iterordiEM=10)
+boscoclust(x, idx_list=c(0), kr, kc, init, nbSEM, nbSEMburn, nbRepeat=1, nbindmini, m=0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-%%     ~~Describe \code{x} here~~
-Matrix of ordinal data. The missing values should be equal to 0.
-}
+  %%     ~~Describe \code{x} here~~
+  Matrix made of ordinal data, of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be equal to -1.
+  }
+  \item{idx_list}{
+  %%     ~~Describe \code{x} here~~
+  Vector of length D. This argument is useful when variables have different numbers of levels. Element d should indicate where the variables with number of levels m[d] begins in matrix x.
+  }
   \item{kr}{
-%%     ~~Describe \code{kr} here~~
-Number of row clusters.
-}
-  \item{kc}{
-%%     ~~Describe \code{kc} here~~
-Number of column clusters.
-}
+  %%     ~~Describe \code{kr} here~~
+  Number of row classes.
+  }
+    \item{kc}{
+  %%     ~~Describe \code{kc} here~~
+  Vector of length D. d^{th} element indicates the number of column clusters. Set to 0 to choose a classical multivariate BOS model.
+  }
   \item{m}{
-%%     ~~Describe \code{m} here~~
-Number of categories for ordinal variables.
-}
+  %%     ~~Describe \code{m} here~~
+  Vector of length D. d^{th} element defines the ordinal data's number of levels.
+  }
   \item{nbSEM}{
-%%     ~~Describe \code{nbSEM} here~~
-Number of SEM-Gibbs iterations realized to estimate parameters.
-}
+  %%     ~~Describe \code{nbSEM} here~~
+  Number of SEM-Gibbs iterations realized to estimate parameters.
+  }
   \item{nbSEMburn}{
-%%     ~~Describe \code{nbSEMburn} here~~
-Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
-}
+  %%     ~~Describe \code{nbSEMburn} here~~
+  Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
+  }
+  \item{nbRepeat}{
+  %%     ~~Describe \code{nbSEMburn} here~~
+  Number of times sampling on rows and on colums will be done at each SEM-Gibbs iteration.
+  }
   \item{nbindmini}{
-%%     ~~Describe \code{nbindmini} here~~
-Minimum number of cells belonging to a block.
-}
+  %%     ~~Describe \code{nbindmini} here~~
+  Minimum number of cells belonging to a block.
+  }
   \item{init}{
-%%     ~~Describe \code{init} here~~
-String that indicates the kind of initialisation. Must one of these two words :  "kmeans" or "random".
-}
-  \item{disp}{
-%%     ~~Describe \code{disp} here~~
-Boolean that should be set to TRUE if the user wants the progress bars to be displayed in the console.
-}
-  \item{iterordiEM}{
-%%     ~~Describe \code{iterordiEM} here~~
-Number of iterations for the internal EM algorithm that estimates the parameters of BOS distribution.
-}
+  %%     ~~Describe \code{init} here~~
+  String that indicates the kind of initialisation. Must one of these two words :  "kmeans" or "random".
+  }
 }
 
 %%\details{
@@ -66,24 +65,22 @@ Number of iterations for the internal EM algorithm that estimates the parameters
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
-  \item{xhat}{dataset completed with missing values completed.}
-  \item{mus}{For each iteration, an array of dimension kr*kc that represents the mus that were estimated at each iteration.}
-  \item{ps}{For each iteration, an array of dimension kr*kc that represents the pis that were estimated at each iteration.} 
-  \item{gamma}{Array of gammas (row mixing proportions) that were estimated at each iteration.}
-  \item{rho}{Array of rhos (columns mixing proportions) that were estimated at each iteration.}
-  \item{V}{For each iteration, array of dimension N*G such that V[i,g]=1 if i belongs to cluster g}
-  \item{W}{For each iteration, array of dimension J*H such that W[j,h]=1 if j belongs to cluster h.}
-  \item{res_mus}{Array of dimension kr*kc that represents the resulting BOS position parameters mus.}
-  \item{res_ps}{Array of dimension kr*kc that represents the resulting BOS precision parameters pis.}
-  \item{res_gamma}{Vector with the resulting gamma.}
-  \item{res_rho}{Vector with the resulting rho.}
-  \item{res_V}{Array with the resulting V.}
-  \item{res_W}{Array with the resulting W.}
-  \item{icl}{ICL-BIC result value. Must be maximized.}
-  \item{zr}{Vector with resulting row partitions.}
-  \item{zc}{Vector with resulting column partitions.}
-  \item{probaV}{Array representing the probability for each row to belong to each row-cluster.}
-  \item{probaW}{Array representing the probability for each column to belong to each column-cluster.}
+\item{@V}{Matrix of dimension N*kr such that V[i,g]=1 if i belongs to cluster g.}
+\item{@icl}{ICL value for co-clustering.}\item{@name}{}
+\item{@paramschain}{List of length nbSEMburn. For each iteration of the SEM-Gibbs algorithm, the parameters of the blocks are stored.}
+\item{@pichain}{List of length nbSEM. Item i is a vector of length kr which contains the row mixing proportions at iteration i.}
+\item{@rhochain}{List of length nbSEM. Item i is a list of length D whose d^{th} contains the column mixing proportions of groups of variables d, at iteration i.}
+\item{@zc}{List of length D. d^{th} item is a vector of length J[d] representing the columns partitions for the group of variables d.}
+\item{@zr}{Vector of length N with resulting row partitions.}
+\item{@W}{List of length D. Item d is a matrix of dimension J*kc[d] such that W[j,h]=1 if j belongs to cluster h.}
+\item{@m}{Vector of length D. d^{th} element represents the number of levels of d^{th} group of variables.}
+\item{@params}{List of length D. d^{th} item represents the blocks paramaters for group of variables d.}
+\item{@pi}{Vector of length kr. Row mixing proportions.}
+\item{@rho}{List of length D. d^{th} item represents the column mixing proportion for d^{th} group of variables.}
+\item{@xhat}{List of length D. d^{th} item represents the d^{th} group of variables dataset, with missing values completed.}
+\item{@zrchain}{Matrix of dimension nbSEM*N. Row i represents the row cluster partitions at iteration i.}  
+\item{@zrchain}{List of length D. Item d is a matrix of dimension nbSEM*J[d]. Row i represents the column cluster partitions at iteration i.}
+
 }
 %%\references{
 %% ~put references to the literature/web site here ~
@@ -108,39 +105,45 @@ Margot Selosse, Julien Jacques, Christophe Biernacki.
     nbSEM=15
     nbSEMburn=10
     nbindmini=1
+    init = "kmeans"
 
     kr=2
     kc=2
     m=3
 
-    res <- boscoclust(x=Msimulated,kr = kr,kc=kc,m=m, nbSEM=nbSEM,
-                      nbindmini=nbindmini,nbSEMburn=nbSEMburn, iterordiEM=5)
+    res <- boscoclust(x=Msimulated,kr = kr, kc=kc, m=m, nbSEM=nbSEM,
+                      nbindmini=nbindmini, nbSEMburn=nbSEMburn, init=init)
   }
   \donttest{
-    # loading the real dataset
-    data("dataqol")
-    set.seed(5)
+    
+  library(ordinalClust)
 
-    # loading the ordinal data 
-    M <- as.matrix(dataqol[,2:29])
+  # loading the real dataset
+  data("dataqol")
+  set.seed(5)
+
+  # loading the ordinal data
+  M <- as.matrix(dataqol[,2:29])
 
 
-    # defining different number of categories:
-    m=4
+  # defining different number of categories:
+  m=4
 
 
-    # defining number of row and column clusters
-    krow = 5
-    kcol = 4
+  # defining number of row and column clusters
+  krow = 5
+  kcol = 4
 
-    # configuration for the inference
-    nbSEM=50
-    nbSEMburn=40
-    nbindmini=2
+  # configuration for the inference
+  nbSEM=50
+  nbSEMburn=40
+  nbindmini=2
+  init = "kmeans"
 
-    # Co-clustering execution
-    object <- boscoclust(x=M,kr=krow,kc=kcol,m=m,nbSEM=nbSEM,nbSEMburn=nbSEMburn,
-                         nbindmini=nbindmini, init='kmeans',disp=TRUE)
+
+  # Co-clustering execution
+  object <- boscoclust(x=M,kr=krow,kc=kcol,m=m,nbSEM=nbSEM,
+            nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
 
   }
   

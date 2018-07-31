@@ -10,47 +10,42 @@ bosclust
 This function performs a clustering on ordinal data by using the multiple latent block model (cf references for further  details). It allows the user to define D groups of variables that have different number of levels. A BOS distribution is used, and the parameters inference is realized with an SEM-Gbbs algorithm.
 }
 \usage{
-bosclust(x, kr, m, nbSEM = 50, nbSEMburn = 20, nbindmini = 4, 
-  init = "kmeans", disp = TRUE, iterordiEM = 10)
+bosclust(x, idx_list=c(0), kr, init, nbSEM, nbSEMburn, nbindmini, m=0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-%%     ~~Describe \code{x} here~~
-Matrix of ordinal data. The missing values should be equal to 0.
-}
+  %%     ~~Describe \code{x} here~~
+  Matrix made of ordinal data, of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be equal to -1.
+  }
+  \item{idx_list}{
+  %%     ~~Describe \code{x} here~~
+  Vector of length D. This argument is useful when variables have different numbers of levels. Element d should indicate where the variables with number of levels m[d] begins in matrix x.
+  }
   \item{kr}{
-%%     ~~Describe \code{kr} here~~
-Number of row clusters.
-}
+  %%     ~~Describe \code{kr} here~~
+  Number of row clusters.
+  }
   \item{m}{
-%%     ~~Describe \code{m} here~~
-Defines the number of levels for the variables.
-}
+  %%     ~~Describe \code{m} here~~
+  Vector of length D. d^{th} element defines the ordinal data's number of levels.
+  }
   \item{nbSEM}{
-%%     ~~Describe \code{nbSEM} here~~
-Number of SEM-Gibbs iterations realized to estimate parameters.
-}
+  %%     ~~Describe \code{nbSEM} here~~
+  Number of SEM-Gibbs iterations realized to estimate parameters.
+  }
   \item{nbSEMburn}{
-%%     ~~Describe \code{nbSEMburn} here~~
-Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
-}
+  %%     ~~Describe \code{nbSEMburn} here~~
+  Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
+  }
   \item{nbindmini}{
-%%     ~~Describe \code{nbindmini} here~~
-Minimum number of cells belonging to a block.
-}
+  %%     ~~Describe \code{nbindmini} here~~
+  Minimum number of cells belonging to a block.
+  }
   \item{init}{
-%%     ~~Describe \code{init} here~~
-String that indicates the kind of initialisation. Must one of these two words :  "kmeans" or "random".
-}
-  \item{disp}{
-%%     ~~Describe \code{disp} here~~
-Boolean that should be set to TRUE if the user wants the progress bars to be displayed in the console.
-}
-  \item{iterordiEM}{
-%%     ~~Describe \code{iterordiEM} here~~
-Number of iterations for the internal EM algorithm that estimates the parameters of BOS distribution.
-}
+  %%     ~~Describe \code{init} here~~
+  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans" or "random".
+  }
 }
 %%\details{
 %%  ~~ If necessary, more details than the description above ~~
@@ -61,18 +56,18 @@ Number of iterations for the internal EM algorithm that estimates the parameters
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
-  \item{xhat}{Represents the dataset, with missing values completed.}
-  \item{mu}{Represents the BOS position parameter mus that were estimated at each iteration of the SEM algorithm.}
-  \item{p}{Represents the BOS precision parameter pis that were estimated at each iteration of the SE algorithm.} 
-  \item{gamma}{Vector of length kr indicating the row mixing proportions that were estimated at each iteration of the SE algorithm.}
-  \item{V}{For each iteration of the SEM algorithm, array of dimension N*G such that V[i,g]=1 if i belongs to cluster g.}
-  \item{res_mu}{Represents the resulting position parameter mu.}
-  \item{res_p}{Represents the resulting precision parameter pi.}
-  \item{res_gamma}{Vector with the resulting gammas.}
-  \item{res_V}{Array with the resulting V.}
-  \item{icl}{ICL-BIC result value. Must be maximized.}
-  \item{zr}{Vector with resulting row partitions.}
-  \item{probaV}{Array representing the probability for each row to belong to each row-cluster.}
+
+  \item{@V}{Matrix of dimension N*kr such that V[i,g]=1 if i belongs to cluster g.}
+  \item{@zr}{Vector of length N with resulting row partitions.}
+  \item{@pi}{Vector of length kr. Row mixing proportions.}
+  \item{@m}{Vector of length D. d^{th} element represents the number of levels of d^{th} group of variables.}
+  \item{@icl}{ICL value for clustering.}       
+  \item{@name}{Name of the result.}
+  \item{@params}{List of length D. d^{th} item stores the resulting position and precision parameters mu and pi.}
+  \item{@paramschain}{List of length nbSEMburn. For each iteration of the SEM-Gibbs algorithm, the parameters of the blocks are stored.}
+  \item{@xhat}{List of length D. d^{th} item represents the d^{th} group of variables dataset, with missing values completed.}
+  \item{@zrchain}{Matrix of dimension nbSEM*N. Row i represents the row cluster partitions at iteration i.}    
+  \item{@pichain}{List of length nbSEM. Item i is a vector of length kr which contains the row mixing proportions at iteration i.}
 }
 %%\references{
 %% ~put references to the literature/web site here ~
@@ -91,41 +86,28 @@ Margot Selosse, Julien Jacques, Christophe Biernacki.
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 %%}
 \examples{
-  #\dontshow{
-  #  data("Msimulated")
 
-  #  nbSEM=15
-  #  nbSEMburn=10
-  #  nbindmini=1
+\donttest{
+  library(ordinalClust)
+  data("dataqol")
+  set.seed(5)
 
-  #  kr=2
-  #  m=3
+  # loading the ordinal data
+  M <- as.matrix(dataqol[,2:29])
 
-  #  res <- bosclust(x=Msimulated,kr = kr,m=m,
-  #                  nbSEM=nbSEM,nbSEMburn=nbSEMburn,
-  #                  nbindmini=#nbindmini,
-  #                  disp=FALSE,iterordiEM=5)
-  #}
-  \donttest{
-    library(ordinalClust)
-    data("dataqol")
-    set.seed(5)
+  m = 4
 
-    # loading the ordinal data 
-    M <- as.matrix(dataqol[,2:29])
+  krow = 4
 
-    m=4
+  nbSEM=50
+  nbSEMburn=40
+  nbindmini=2
+  init = "random"
 
-    krow = 4
 
-    nbSEM=50
-    nbSEMburn=40
-    nbindmini=1
-
-    object <- bosclust(x=M, kr=krow, m=m, nbSEM=nbSEM,
-        nbindmini=nbindmini, nbSEMburn=nbSEMburn,
-        init='kmeans',disp=TRUE)
-  }
+  object <- bosclust(x=M,kr=krow, m=m, nbSEM=nbSEM,
+      nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
+    }
   
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

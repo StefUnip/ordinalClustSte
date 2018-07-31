@@ -15,10 +15,10 @@ vignette: >
 ordinalClust is an R package that allows users to perform classification, clustering and co-clustering of ordinal data. Furthermore, it allows to handle different numbers of levels and missing values. The ordinal data is considered to follow a BOS distribution [@biernacki16], which is specific for this kind of data. The Latent Block Model is used for performing co-clustering [@jacques17].
 
 ## Installation
-```r
+```{r}
 set.seed(5)
 ```
-```r
+```{r, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE }
 library(ordinalClust)
 ```
 
@@ -43,7 +43,7 @@ To simulate a sample of ordinal data following the BOS distribution, the functio
 ### Basic example code
 
 This snippet creates a sample of ordinal data with 7 categories, that follows a BOS distribution parametrized by mu=5 and pi=0.5:
-```r
+```{r}
 m=7
 nr=10000
 mu=5
@@ -58,27 +58,6 @@ M <- sample(1:m,nr,prob = probaBOS, replace=TRUE)
 
 To plot the resulting distribution, the **ggplot2** library can be used.
 
-```r
-# loading ggplot2
-library(ggplot2)
-
-# changing M as a dataframe
-M <- as.data.frame(M)
-
-# Defining the colors for the 7 categories:
-cbPalette <- c("#560303", "#a30606", "#ceac18", "#e0e00d", "#f7f313", "#9bf713", "#0de037")
-
-# Creating the histogram plot
-plot1 <- ggplot(data = M, aes(x = M,fill=factor(M))) +
-  geom_histogram() +
-  ylim(0, nr) +
-  ggtitle("ordinal data with m=7 \n mu=5 and pi=0.5") +
-  theme(plot.title = element_text(vjust = -20,hjust = 0.5,size = 18)) +
-  scale_x_continuous(breaks=1:7, labels=c(1:7), limits=c(0,8)) +
-  scale_fill_manual(values=cbPalette)
-
-plot1
-```
 
 ```{r  fig.width = 5, warning=FALSE, eval=TRUE, message=FALSE, tidy=TRUE, dev='png', echo=FALSE, fig.show='hold', fig.align='center'}
 library(ggplot2)
@@ -116,24 +95,26 @@ set.seed(5)
 # loading the ordinal data
 M <- as.matrix(dataqol[,2:29])
 
-m=4
+m = 4
 
 krow = 4
 
 nbSEM=50
 nbSEMburn=40
 nbindmini=2
+init = "random"
 
-object <- bosclust(x=M, kr=krow, m=m, nbSEM=nbSEM,
-    nbSEMburn=nbSEMburn, nbindmini=nbindmini)
+
+object <- bosclust(x=M,kr=krow, m=m, nbSEM=nbSEM,
+    nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
 
 ```
 
 ### Plotting the result
 
-```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
 
-bosplot(object)
+plot(object)
 
 ```
 
@@ -174,19 +155,21 @@ kcol = 4
 nbSEM=50
 nbSEMburn=40
 nbindmini=2
+init = "kmeans"
+
 
 # Co-clustering execution
 object <- boscoclust(x=M,kr=krow,kc=kcol,m=m,nbSEM=nbSEM,
-          nbSEMburn=nbSEMburn, nbindmini=nbindmini)
+          nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
 
 ```
 
 ### Plotting the result
 
-This snippet shows how to visualize the resulting co-clustering, with the **bosplot** function:
+This snippet shows how to visualize the resulting co-clustering, with the **plot** function:
 ```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 
-bosplot(object)
+plot(object)
 
 ```
 
@@ -241,20 +224,23 @@ kr <- 2
 nbSEM=50
 nbSEMburn=40
 nbindmini=2
+init="kmeans"
 
 
 # different kc to test with cross-validation
 kcol <- c(0,1,2,3)
 m <- 4
 
+
 # matrix which contains the predictions for all different kc
 predictions <- matrix(0,nrow=length(kcol),ncol=nrow(M.validation))
 
 for(kc in 1:length(kcol)){
-  res <- bosclassif(x=M.train, y=y.train, to.predict=M.validation, 
-                    kr, kc=kcol[kc], m=m, nbSEM=nbSEM, 
+  res <- bosclassif(x=M.train, y=y.train, idx_list=c(0),
+                    kr=kr, kc=kcol[kc], init=init, m=m, nbSEM=nbSEM, 
                     nbSEMburn=nbSEMburn, nbindmini=nbindmini)
-  predictions[kc,] <- res$zr.to.predict
+  new.prediction <- predict(res, M.validation)
+  predictions[kc,] <- new.prediction@zr_topredict
 }
 
 predictions = as.data.frame(predictions)
@@ -326,40 +312,26 @@ m=c(4,7)
 
 
 # defining number of row and column clusters
-krow = 5
-kcol = c(4,1)
+krow = 3
+kcol = c(3,1)
 
 # configuration for the inference
-nbSEM=70
-nbSEMburn=50
+nbSEM=50
+nbSEMburn=40
 nbindmini=2
+init='kmeans'
 
-d.list <- list(1:28,29:30)
+d.list <- c(0,28)
 
 # Co-clustering execution
-object <- boscoclustMulti(x=M,kr=krow,kc=kcol,m=m, d.list=d.list,
+object <- boscoclust(x=M,kr=krow,kc=kcol,m=m, idx_list=d.list,
                     nbSEM=nbSEM,nbSEMburn=nbSEMburn,
-                     nbindmini=nbindmini, init='kmeans',disp=T)
+                     nbindmini=nbindmini, init=init)
 
 ```
 
-<!-- ### Plotting the result -->
-
-<!-- This snippet shows how to visualize the resulting co-clustering, with the **bosplot** function: -->
-<!-- ```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE} -->
-
-<!-- bosplot(object) -->
-
-<!-- ``` -->
-
-<!-- ```{r  echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""} -->
-<!-- library(knitr)    # For knitting document and include_graphics function -->
-
-<!-- include_graphics("figures/multi.png") -->
-<!-- ``` -->
 
 
-In case of clustering and classification the **bosclustMulti** and **bosclassifMulti** functions are used with equivalent changes.
 
 ## References
 

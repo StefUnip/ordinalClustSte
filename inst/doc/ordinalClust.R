@@ -1,3 +1,19 @@
+## ------------------------------------------------------------------------
+set.seed(5)
+
+## ---- echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE-----------------
+library(ordinalClust)
+
+## ------------------------------------------------------------------------
+m=7
+nr=10000
+mu=5
+pi=0.5
+
+probaBOS=rep(0,m)
+for (im in 1:m) probaBOS[im]=pejSim(im,m,mu,pi)
+M <- sample(1:m,nr,prob = probaBOS, replace=TRUE)
+
 ## ----fig.width = 5, warning=FALSE, eval=TRUE, message=FALSE, tidy=TRUE, dev='png', echo=FALSE, fig.show='hold', fig.align='center'----
 library(ggplot2)
 library(ordinalClust)
@@ -28,21 +44,23 @@ plot1
 #  # loading the ordinal data
 #  M <- as.matrix(dataqol[,2:29])
 #  
-#  m=4
+#  m = 4
 #  
 #  krow = 4
 #  
 #  nbSEM=50
 #  nbSEMburn=40
 #  nbindmini=2
+#  init = "random"
 #  
-#  object <- bosclust(x=M, kr=krow, m=m, nbSEM=nbSEM,
-#      nbSEMburn=nbSEMburn, nbindmini=nbindmini)
+#  
+#  object <- bosclust(x=M,kr=krow, m=m, nbSEM=nbSEM,
+#      nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
 #  
 
-## ----echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE-----------------
+## ----echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE----------------
 #  
-#  bosplot(object)
+#  plot(object)
 #  
 
 ## ----echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""----
@@ -74,15 +92,17 @@ include_graphics("figures/clust.png")
 #  nbSEM=50
 #  nbSEMburn=40
 #  nbindmini=2
+#  init = "kmeans"
+#  
 #  
 #  # Co-clustering execution
 #  object <- boscoclust(x=M,kr=krow,kc=kcol,m=m,nbSEM=nbSEM,
-#            nbSEMburn=nbSEMburn, nbindmini=nbindmini)
+#            nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
 #  
 
 ## ----echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE-----------------
 #  
-#  bosplot(object)
+#  plot(object)
 #  
 
 ## ----echo=FALSE, out.width = "75%", out.extra='style="display: block;margin: auto;"', fig.cap=""----
@@ -124,20 +144,23 @@ kr <- 2
 nbSEM=50
 nbSEMburn=40
 nbindmini=2
+init="kmeans"
 
 
 # different kc to test with cross-validation
 kcol <- c(0,1,2,3)
 m <- 4
 
+
 # matrix which contains the predictions for all different kc
 predictions <- matrix(0,nrow=length(kcol),ncol=nrow(M.validation))
 
 for(kc in 1:length(kcol)){
-  res <- bosclassif(x=M.train, y=y.train, to.predict=M.validation, 
-                    kr, kc=kcol[kc], m=m, nbSEM=nbSEM, 
+  res <- bosclassif(x=M.train, y=y.train, idx_list=c(0),
+                    kr=kr, kc=kcol[kc], init=init, m=m, nbSEM=nbSEM, 
                     nbSEMburn=nbSEMburn, nbindmini=nbindmini)
-  predictions[kc,] <- res$zr.to.predict
+  new.prediction <- predict(res, M.validation)
+  predictions[kc,] <- new.prediction@zr_topredict
 }
 
 predictions = as.data.frame(predictions)
@@ -195,19 +218,20 @@ specificities
 #  
 #  
 #  # defining number of row and column clusters
-#  krow = 5
-#  kcol = c(4,1)
+#  krow = 3
+#  kcol = c(3,1)
 #  
 #  # configuration for the inference
-#  nbSEM=70
-#  nbSEMburn=50
+#  nbSEM=50
+#  nbSEMburn=40
 #  nbindmini=2
+#  init='kmeans'
 #  
-#  d.list <- list(1:28,29:30)
+#  d.list <- c(0,28)
 #  
 #  # Co-clustering execution
-#  object <- boscoclustMulti(x=M,kr=krow,kc=kcol,m=m, d.list=d.list,
+#  object <- boscoclust(x=M,kr=krow,kc=kcol,m=m, idx_list=d.list,
 #                      nbSEM=nbSEM,nbSEMburn=nbSEMburn,
-#                       nbindmini=nbindmini, init='kmeans',disp=T)
+#                       nbindmini=nbindmini, init=init)
 #  
 

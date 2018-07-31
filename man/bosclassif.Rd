@@ -7,62 +7,53 @@ bosclassif
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function performs a classification on a dataset with features of the ordinal kind, and a label variable of the integer type (1,2,...,kr). The classification function proposes two classification models. The first one, (chosen by the option kc=0), is a multivariate BOS model assuming that, conditionally on the class of the observations, the feature are independent. The second model is a parsimonious version of the first model. Parcimony is introduced by grouping the features into clusters (as in co-clustering) and assuming that the features of a cluster have a common distribution. 
+This function performs a classification on a dataset with features of the ordinal kind, and a label variable of the integer type (1,2,...,kr). The classification function proposes two classification models. The first one, (chosen by the argument kc=0), is a multivariate BOS model assuming that, conditionally on the class of the observations, the feature are independent. The second model is a parsimonious version of the first model. Parcimony is introduced by grouping the features into clusters (as in co-clustering) and assuming that the features of a cluster have a common distribution. If the data contains ordinal features with D different numbers of levels, the data is going to be seen as D matrices of ordinal data.
 }
 \usage{
-bosclassif(x,y,to.predict,kr,kc=0,m,nbSEM=50,nbSEMburn=20,nbindmini=4,
-  init='kmeans',disp=TRUE,iterordiEM=10) 
+bosclassif(x, y, idx_list=c(0), kr, kc=0, init, nbSEM, nbSEMburn, nbindmini, m=0) 
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-%%     ~~Describe \code{x} here~~
-Matrix of ordinal data. The missing values should be equal to 0.
-}
-\item{y}{
-%%     ~~Describe \code{x} here~~
-Vector of classes for each row of x. Must be labelled with integers (1,2,...,kr).
-}
-\item{to.predict}{
-%%     ~~Describe \code{x} here~~
-Matrix of ordinal data with same number of features than x. Represents the observation the user wants to give a label (1,...,kr).
-}
+  %%     ~~Describe \code{x} here~~
+  Matrix made of ordinal data, of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be equal to -1.
+  }
+  \item{y}{
+  %%     ~~Describe \code{x} here~~
+  Vector of length N. It should represent the classes corresponding to each row of x. Must be labelled with integers (1,2,...,kr).
+  }
+  \item{idx_list}{
+  %%     ~~Describe \code{x} here~~
+  Vector of length D. This argument is useful when variables have different numbers of levels. Element d should indicate where the variables with number of levels m[d] begins in matrix x.
+  }
   \item{kr}{
-%%     ~~Describe \code{kr} here~~
-Number of classes.
-}
+  %%     ~~Describe \code{kr} here~~
+  Number of row classes.
+  }
   \item{kc}{
-%%     ~~Describe \code{kc} here~~
-Set to 0 to choose a classical multivariate BOS model. Otherwise, o choose a parsimonious model, set an integer that indicates the number of column clusters.
-}
+  %%     ~~Describe \code{kc} here~~
+  Vector of length D. d^{th} element indicates the number of column clusters. Set to 0 to choose a classical multivariate BOS model.
+  }
   \item{m}{
-%%     ~~Describe \code{m} here~~
-Integer that defines the ordinal data's number of levels.
-}
+  %%     ~~Describe \code{m} here~~
+  Vector of length D. d^{th} element defines the ordinal data's number of levels.
+  }
   \item{nbSEM}{
-%%     ~~Describe \code{nbSEM} here~~
-Number of SEM-Gibbs iterations realized to estimate parameters.
-}
+  %%     ~~Describe \code{nbSEM} here~~
+  Number of SEM-Gibbs iterations realized to estimate parameters.
+  }
   \item{nbSEMburn}{
-%%     ~~Describe \code{nbSEMburn} here~~
-Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
-}
+  %%     ~~Describe \code{nbSEMburn} here~~
+  Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
+  }
   \item{nbindmini}{
-%%     ~~Describe \code{nbindmini} here~~
-Minimum number of cells belonging to a block.
-}
+  %%     ~~Describe \code{nbindmini} here~~
+  Minimum number of cells belonging to a block.
+  }
   \item{init}{
-%%     ~~Describe \code{init} here~~
-String that indicates the kind of initialisation. Must one of these two words :  "kmeans" or "random".
-}
-  \item{disp}{
-%%     ~~Describe \code{disp} here~~
-Boolean that should be set to TRUE if the user wants the progress bars to be displayed in the console.
-}
-  \item{iterordiEM}{
-%%     ~~Describe \code{iterordiEM} here~~
-Number of iterations for the internal EM algorithm that estimates the parameters of BOS distribution.
-}
+  %%     ~~Describe \code{init} here~~
+  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans" or "random".
+  }
 }
 %%\details{
 %%  ~~ If necessary, more details than the description above ~~
@@ -70,29 +61,34 @@ Number of iterations for the internal EM algorithm that estimates the parameters
 \value{
 %%  ~Describe the value returned
 %%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
+%%\item{comp1 }{Description of 'comp1'}
+%%\item{comp2 }{Description of 'comp2'}
 %% ...
+  Return an object. The slots are:
+  \item{@zr}{Vector of length N with resulting row partitions.}
+  \item{@zc}{List of length D. d^{th} item is a vector of length J[d] representing the columns partitions for the group of variables d.}
+  \item{@J}{Vector of length D. d^{th} item represents the number of columns for d^{th} group of variables.}
+  \item{@W}{List of length D. Item d is a matrix of dimension J*kc[d] such that W[j,h]=1 if j belongs to cluster h.}
+  \item{@V}{Matrix of dimension N*kr such that V[i,g]=1 if i belongs to cluster g.}
+  \item{@icl}{ICL value for co-clustering.}
+  \item{@kr}{Number of row classes.}
+  \item{@name}{Name of the result.}
+  \item{@number_distrib}{Number of groups of variables.}
+  \item{@pi}{Vector of length kr. Row mixing proportions.}
+  \item{@rho}{List of length D. d^{th} item represents the column mixing proportion for d^{th} group of variables.}
+  \item{@dlist}{List of length d. d^{th} item represents the indexes of group of variables d.}
+  \item{@kc}{Vector of length D. d^{th} element represents the number of clusters column H for d^{th} group of variables.}
+  \item{@m}{Vector of length D. d^{th} element represents the number of levels of d^{th} group of variables.}
+  \item{@nbSEM}{Number of SEM-Gibbs algorithm iteration.}
+  \item{@params}{List of length D. d^{th} item represents the blocks paramaters for group of variables d.}
+  \item{@xhat}{List of length D. d^{th} item represents the d^{th} group of variables dataset, with missing values completed.}
+  
+  
 
-  \item{probas.to.predict}{Matrix with nrow=nrow(to.predict) and ncol=kr. For each observation of argument to.predict, indicates the probability to  belong to each class.}
-  \item{zr.to.predict}{Vector of length nrow(to.predict) which indicates at which class the observations of to predict has been associated.}
-  \item{V.to.predict}{Matrix with nrow=nrow(to.predict) and ncol=kr. Indicates at which class the observations of to.predict has been associated.}
-  \item{xhat}{dataset with missing values completed.}
-  \item{mus}{For each iteration, an array of dimension kr*kc that represents the mus that were estimated at each iteration.}
-  \item{ps}{For each iteration, an array of dimension kr*kc that represents the pis that were estimated at each iteration.} 
-  \item{gamma}{Array of gammas (row mixing proportions) that were estimated at each iteration.}
-  \item{rho}{Array of rhos (columns mixing proportions) that were estimated at each iteration.}
-  \item{W}{For each iteration, array of dimension J*H such that W[j,h]=1 if j belongs to cluster h.}
-  \item{res_mus}{Array of dimension kr*kc that represents the resulting BOS position parameters mus.}
-  \item{res_ps}{Array of dimension kr*kc that represents the resulting BOS precision parameters pis.}
-  \item{res_gamma}{Vector with the resulting gamma.}
-  \item{res_rho}{Vector with the resulting rho.}
-  \item{res_V}{Array with the resulting V.}
-  \item{res_W}{Array with the resulting W.}
-  \item{icl}{ICL-BIC result value. Must be maximized.}
-  \item{zc}{Vector with resulting column partitions.}
-  \item{probaV}{Array representing the probability for each row to belong to each row-cluster.}
-  \item{probaW}{Array representing the probability for each column to belong to each column-cluster.}
+
+
+
+
 }
 %%\references{
 %% ~put references to the literature/web site here ~
@@ -144,6 +140,7 @@ y.validation <- y[-sample.train]
 nbSEM=50
 nbSEMburn=40
 nbindmini=1
+init="kmeans"
 
 # number of classes to predict
 kr <- 2
@@ -151,9 +148,11 @@ kr <- 2
 kcol <- 1
 
 
-res <- bosclassif(x=M.train,y=y.train,to.predict=M.validation,kr,kc=kcol,m=m,
+res <- bosclassif(x=M.train,y=y.train,kr=kr,kc=kcol,m=m,
                   nbSEM=nbSEM,nbSEMburn=nbSEMburn,
-                  nbindmini=nbindmini, disp=TRUE)
+                  nbindmini=nbindmini,init=init)
+
+predictions <- predict(res, M.validation)
 
 
 
