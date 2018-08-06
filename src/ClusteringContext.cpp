@@ -5,7 +5,7 @@ ClusteringContext::ClusteringContext(arma::mat x, std::vector< arma::urowvec > d
 
 	// attributes that are directly instanciated
 	this->_x = x;
-	this->_N = _x.n_rows;
+	this->_Nr = _x.n_rows;
 	this->_dlist = dlist;
 	this->_kr = kr;
 	this->_m = m;
@@ -19,11 +19,11 @@ ClusteringContext::ClusteringContext(arma::mat x, std::vector< arma::urowvec > d
 	this->_number_distrib = _m.size();
 
 	// attributes regarding columns
-	vector<int> tmp_J(_number_distrib);
+	vector<int> tmp_Jc(_number_distrib);
 	vector<Distribution*> tmp_distrib_objets;
 
 
-	this->_zrchain = zeros(_nbSEM,_N);
+	this->_zrchain = zeros(_nbSEM,_Nr);
 
 	int im = 0;
 
@@ -45,27 +45,27 @@ ClusteringContext::ClusteringContext(arma::mat x, std::vector< arma::urowvec > d
 		}
 
 
-		tmp_J[idistrib] = _dlist.at(idistrib).size();
+		tmp_Jc[idistrib] = _dlist.at(idistrib).size();
 		
 		
 				
 	}
-	this->_J = tmp_J;
+	this->_Jc = tmp_Jc;
 	this->_distrib_objects = tmp_distrib_objets;
 
 	// attributes regarding lines
-	this->_N = _x.n_rows;
+	this->_Nr = _x.n_rows;
 	
-	mat tmp_probaV(_N, _kr, fill::zeros);
+	mat tmp_probaV(_Nr, _kr, fill::zeros);
 	this->_probaV = tmp_probaV;
-	mat tmp_logprobaV(_N, _kr, fill::zeros);
+	mat tmp_logprobaV(_Nr, _kr, fill::zeros);
 	this->_logprobaV = tmp_probaV;
-	vector<int> tmp_zr(this->_N);
+	vector<int> tmp_zr(this->_Nr);
 	std::fill(tmp_zr.begin(), tmp_zr.end(), 0);
 	this->_zr = tmp_zr;
 
 
-	mat tmp_V(_N, _kr, fill::zeros);
+	mat tmp_V(_Nr, _kr, fill::zeros);
 	this->_V = tmp_V;
 	rowvec tmp_gamma(_kr);
 	std::fill(tmp_gamma.begin(), tmp_gamma.end(), 0);
@@ -101,7 +101,7 @@ void ClusteringContext::initialization() {
 		double prob = (double)1 / _kr;
 		std::fill(vec.begin(), vec.end(), prob);
 		discrete_distribution<> d(vec.begin(), vec.end());
-		for (int i = 0; i<_N; ++i) {
+		for (int i = 0; i<_Nr; ++i) {
 			// random!
 			mt19937 gen(_rd());
 			int sample = d(gen);
@@ -116,7 +116,7 @@ void ClusteringContext::initialization() {
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
 		{
 			for (int k = 0; k < _kr; k++) {
-				for (int d = 0; d < _J[idistrib]; d++) {
+				for (int d = 0; d < _Jc[idistrib]; d++) {
 					uvec rowind = find(this->_V.col(k) == 1);
 					uvec colind;
 					colind << d;
@@ -135,7 +135,7 @@ void ClusteringContext::initialization() {
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 			//updating distribution parameters;
 			for (int k = 0; k < _kr; k++) {
-				for (int d = 0; d < _J[idistrib]; d++) {
+				for (int d = 0; d < _Jc[idistrib]; d++) {
 					uvec rowind = find(this->_V.col(k) == 1);
 					uvec colind;
 					colind << d;
@@ -151,7 +151,7 @@ void ClusteringContext::initialization() {
 	//cout << "=============== SE step ===============" << endl;
 	// Computing the log-probabilites
 	this->_logprobaV.zeros();
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		this->_logprobaV.row(i) = log(this->_gamma);
 	}
 
@@ -159,9 +159,9 @@ void ClusteringContext::initialization() {
 	{
 
 		LogProbs result(0, 0);
-		for (int d = 0; d < _J[idistrib]; d++)
+		for (int d = 0; d < _Jc[idistrib]; d++)
 		{
-			for (int i = 0; i < _N; i++)
+			for (int i = 0; i < _Nr; i++)
 			{
 				for (int k = 0; k < _kr; k++)
 				{
@@ -175,7 +175,7 @@ void ClusteringContext::initialization() {
 	}
 
 	// Computing the probabilites
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		for (int k = 0; k < _kr; k++) {
 			_probaV(i, k) = exp(_logprobaV(i, k) - logsum(_logprobaV.row(i)));
 		}
@@ -188,15 +188,15 @@ void ClusteringContext::SEstep()
 	//cout << "=============== SE step ===============" << endl;
 	// Computing the log-probabilites
 	this->_logprobaV.zeros();
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		this->_logprobaV.row(i) = log(this->_gamma);
 	}
 
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
 	{
 
-		TabProbsResults result(_N, _kr, _J.at(idistrib), _J.at(idistrib));
-		mat Wtmp = zeros(_J[idistrib], _J[idistrib]);
+		TabProbsResults result(_Nr, _kr, _Jc.at(idistrib), _Jc.at(idistrib));
+		mat Wtmp = zeros(_Jc[idistrib], _Jc[idistrib]);
 		Wtmp.eye();
 		result = _distrib_objects[idistrib]->SEstep(_V, Wtmp);
 		this->_logprobaV += result._tabprobaV;
@@ -204,7 +204,7 @@ void ClusteringContext::SEstep()
 
 
 	// Computing the probabilites
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		for (int k = 0; k < _kr; k++) {
 			this->_probaV(i, k) = exp(this->_logprobaV(i, k) - logsum(_logprobaV.row(i)));
 		}
@@ -221,15 +221,15 @@ void ClusteringContext::SEstepRow()
 
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
 	{
-		mat Wtmp = zeros(_J[idistrib], _J[idistrib]);
+		mat Wtmp = zeros(_Jc[idistrib], _Jc[idistrib]);
 		Wtmp.eye();
-		mat result(_N, _kr);
+		mat result(_Nr, _kr);
 		result = _distrib_objects[idistrib]->SEstepRow(_V, Wtmp);
 		this->_logprobaV += result;
 	}
 
 	// Computing the probabilites
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		for (int k = 0; k < _kr; k++) {
 			this->_probaV(i, k) = exp(this->_logprobaV(i, k) - logsum(_logprobaV.row(i)));
 		}
@@ -251,7 +251,7 @@ void ClusteringContext::Mstep() {
 	this->_gamma = this->getMeans(this->_V);
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		for (int k = 0; k < _kr; k++) {
-			for (int d = 0; d < _J[idistrib]; d++) {
+			for (int d = 0; d < _Jc[idistrib]; d++) {
 				uvec rowind = find(this->_V.col(k) == 1);
 				uvec colind;
 				colind << d;
@@ -267,7 +267,7 @@ void ClusteringContext::MstepVW() {
 	//cout << "mix gamma " << endl;
 	//_gamma.print();
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		mat Wtmp = zeros(_J[idistrib],_J[idistrib]);
+		mat Wtmp = zeros(_Jc[idistrib],_Jc[idistrib]);
 		Wtmp.eye();
 		this->_distrib_objects[idistrib]->MstepVW(_V, Wtmp, false);
 		//cout << "mix rho " << idistrib << endl;
@@ -280,7 +280,7 @@ void ClusteringContext::sampleVW() {
 
 	this->_V.zeros();
 	//std::default_random_engine gen;
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		// random!
 		rowvec vec = _probaV.row(i);
 		discrete_distribution<> dis(vec.begin(), vec.end());
@@ -295,12 +295,12 @@ void ClusteringContext::sampleVW() {
 void ClusteringContext::sampleVWStock() {
 	// Sampling V and W
 
-	mat countV = zeros(_N, _kr);
+	mat countV = zeros(_Nr, _kr);
 	
 	for (int iter = 0; iter < _nbSEM; iter++) {
 		this->_V.zeros();
 		//std::default_random_engine gen;
-		for (int i = 0; i < _N; i++) {
+		for (int i = 0; i < _Nr; i++) {
 			// random!
 			rowvec vec = _probaV.row(i);
 			discrete_distribution<> dis(vec.begin(), vec.end());
@@ -314,17 +314,18 @@ void ClusteringContext::sampleVWStock() {
 
 	//determinging final partitions
 	this->_V.zeros();
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		int maxind = countV.row(i).index_max();
 		this->_V(i, maxind) = 1;
 	}
+	//this->_V.print();
 	return;
 }
 
 void ClusteringContext::imputeMissingData() {
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		mat diag;
-		diag.eye(_J[idistrib], _J[idistrib]);
+		diag.eye(_Jc[idistrib], _Jc[idistrib]);
 		this->_distrib_objects[idistrib]->imputeMissingData(this->_V, diag);
 	}
 }
@@ -333,7 +334,7 @@ bool ClusteringContext::verif() {
 	bool result = true;
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		mat diag;
-		diag.eye(_J[idistrib], _J[idistrib]);
+		diag.eye(_Jc[idistrib], _Jc[idistrib]);
 		result = this->_distrib_objects[idistrib]->verif(_V, diag, _nbindmini);
 		if (result == false) {
 			return false;
@@ -352,7 +353,7 @@ void ClusteringContext::fillParameters(int iteration) {
 
 void ClusteringContext::fillLabels(int iteration) {
 	//cout << "=============== Filling parameters ===============" << endl;
-	for(int i = 0; i<_N; i++){
+	for(int i = 0; i<_Nr; i++){
 		uvec tmp = find(_V.row(i)==1);
 		int label = tmp(0);
 		_zrchain(iteration, i) = label;
@@ -414,8 +415,8 @@ S4 ClusteringContext::returnClustering() {
 
 
     // labels:
-    vec zr = zeros(_N);
-    for(int i=0; i<_N; i++){
+    vec zr = zeros(_Nr);
+    for(int i=0; i<_Nr; i++){
     	uvec k = find(_V.row(i)==1);
     	zr(i) = k(0)+1;
     }
@@ -477,25 +478,25 @@ S4 ClusteringContext::returnClustering() {
 
 double ClusteringContext::computeICL() {
 	double result = 0;
-	result += -(_kr - 1) / 2 * log(_N);
+	result += -(_kr - 1) / 2 * log(_Nr);
 	// don't know if it should be here:
 	/*for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		result += -(_J[idistrib] - 1) / 2 * log(_J[idistrib]) - _J[idistrib] * _kr / 2 * log(_N*_J[idistrib]);
+		result += -(_Jc[idistrib] - 1) / 2 * log(_Jc[idistrib]) - _Jc[idistrib] * _kr / 2 * log(_Nr*_Jc[idistrib]);
 	}*/
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J[idistrib]; d++)
+		for (int d = 0; d < _Jc[idistrib]; d++)
 		{
-				for (int i = 0; i < _N; i++)
+				for (int i = 0; i < _Nr; i++)
 				{
 					for (int k = 0; k < _kr; k++)
 					{
-						result += _V(i, k)*_distrib_objects[idistrib]->computeICL(i, d, k, d);//*_J[idistrib];
+						result += _V(i, k)*_distrib_objects[idistrib]->computeICL(i, d, k, d);//*_Jc[idistrib];
 					}
 				}			
 		}
 	}
 
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		for (int k = 0; k < _kr; k++) {
 			result += _V(i, k)*log(_resgamma(k));
 		}
@@ -503,8 +504,8 @@ double ClusteringContext::computeICL() {
 
 	// don't know if it should be here: 
 	/*for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J[idistrib]; d++) {
-			result += log(1/ _J[idistrib]);
+		for (int d = 0; d < _Jc[idistrib]; d++) {
+			result += log(1/ _Jc[idistrib]);
 		}
 	}*/
 	this->_icl = result;
@@ -515,6 +516,7 @@ double ClusteringContext::computeICL() {
 
 
 double ClusteringContext::logsum(rowvec logx) {
+	logx.replace(datum::nan, -100000);
 	if (logx.size() == 1) {
 		return logx(0);
 	}
@@ -541,21 +543,23 @@ rowvec ClusteringContext::getMeans(mat VorW) {
 
 mat ClusteringContext::kmeansi() {
 
-	mat result(_N, _kr);
+	mat result(_Nr, _kr);
 	result.zeros();
 
 	mat means;
-	bool status = arma::kmeans(means, _x.t(), _kr, random_spread, 3, false);
+	mat xtmp = _x;
+	xtmp.replace(datum::nan, 0); 
+	bool status = arma::kmeans(means, xtmp.t(), _kr, random_subset, 3, false);
 	if (status == false)
 	{
 		//cout << "clustering failed" << endl;
 	}
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		//cout << i << endl;
 		int num_clust = -1;
 		double dst_old = -1;
 		double dst = -1;
-		int leng = std::accumulate(_J.begin(), _J.end(), 0);
+		int leng = std::accumulate(_Jc.begin(), _Jc.end(), 0);
 		for (int k = 0; k < _kr; k++) {
 			vec a(leng);
 			vec b(leng);

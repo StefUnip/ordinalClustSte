@@ -5,14 +5,14 @@ Distribution::Distribution(mat xsep, int kr, int kc, int nbSEM)
 {
 	this->_nbSEM = nbSEM;
 	this->_xsep = xsep;
-	this->_N = xsep.n_rows;
-	this->_J = xsep.n_cols;
+	this->_Nr = xsep.n_rows;
+	this->_Jc = xsep.n_cols;
 	vector<vector<int>> miss_tmp;
-	for (int i = 0; i < this->_N; i++)
+	for (int i = 0; i < this->_Nr; i++)
 	{
-		for (int j = 0; j < this->_J; j++)
+		for (int j = 0; j < this->_Jc; j++)
 		{
-			if (xsep(i, j) == -1) {
+			if (isnan(xsep(i, j))) {
 				vector<int> coordinates;
 				coordinates.push_back(i);
 				coordinates.push_back(j);
@@ -42,17 +42,17 @@ void Distribution::missingValuesInit() {
 
 TabProbsResults Distribution::SEstep(mat V, mat W)
 {
-	TabProbsResults result(_N, _kr, _J, _kc);
+	TabProbsResults result(_Nr, _kr, _Jc, _kc);
 	return result;
 }
 
 mat Distribution::SEstepRow(mat V, mat W){
-	mat result(_N, _kr);
+	mat result(_Nr, _kr);
 	return(result);
 }
 
 mat Distribution::SEstepCol(mat V, mat W){
-	mat result(_J, _kc);
+	mat result(_Jc, _kc);
 	return(result);
 }
 
@@ -142,7 +142,7 @@ mat Distribution::returnXhat(){
 
 
 mat Distribution::colkmeans() {
-	mat result(_J, _kc);
+	mat result(_Jc, _kc);
 	result.zeros();
 
 	mat colmeans;
@@ -153,15 +153,15 @@ mat Distribution::colkmeans() {
 		return result;
 	}
 
-	for (int d = 0; d < _J; d++) {
+	for (int d = 0; d < _Jc; d++) {
 		int num_clust = -1;
 		double dst_old = -1;
 		double dst = -1;
 
 		for (int h = 0; h < _kc; h++) {
-			vec a(_N);
-			vec b(_N);
-			for (int ireconstruct = 0; ireconstruct < _N; ireconstruct++) {
+			vec a(_Nr);
+			vec b(_Nr);
+			for (int ireconstruct = 0; ireconstruct < _Nr; ireconstruct++) {
 				a(ireconstruct) = colmeans.col(h)(ireconstruct);
 				b(ireconstruct) = _xsep.col(d)(ireconstruct);
 			}

@@ -49,8 +49,8 @@ protected:
 	string _name;
 	mat _xsep;
 	vector<vector<int>> _miss;
-	int _N;
-	int _J;
+	int _Nr;
+	int _Jc;
 	int _kr;
 	int _kc;
 	int _nbSEM;

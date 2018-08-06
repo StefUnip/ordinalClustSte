@@ -53,12 +53,11 @@ plot1
 #  nbindmini=2
 #  init = "random"
 #  
-#  
 #  object <- bosclust(x=M,kr=krow, m=m, nbSEM=nbSEM,
 #      nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
 #  
 
-## ----echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE----------------
+## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
 #  
 #  plot(object)
 #  
@@ -94,7 +93,6 @@ include_graphics("figures/clust.png")
 #  nbindmini=2
 #  init = "kmeans"
 #  
-#  
 #  # Co-clustering execution
 #  object <- boscoclust(x=M,kr=krow,kc=kcol,m=m,nbSEM=nbSEM,
 #            nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
@@ -120,6 +118,7 @@ set.seed(5)
 
 # loading the ordinal data
 M <- as.matrix(dataqol.classif[,2:29])
+
 
 # creating the classes values
 y <- as.vector(dataqol.classif$death)

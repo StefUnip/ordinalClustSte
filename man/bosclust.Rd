@@ -16,7 +16,7 @@ bosclust(x, idx_list=c(0), kr, init, nbSEM, nbSEMburn, nbindmini, m=0)
 \arguments{
   \item{x}{
   %%     ~~Describe \code{x} here~~
-  Matrix made of ordinal data, of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be equal to -1.
+  Matrix made of ordinal data, of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be coded as NA.
   }
   \item{idx_list}{
   %%     ~~Describe \code{x} here~~

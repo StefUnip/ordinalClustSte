@@ -62,7 +62,7 @@ mat BosPredict::missingValuesInit(mat& x){
 	{
 		for (int j = 0; j < x.n_cols; j++)
 		{
-			if (x(i, j) == -1) {
+			if (isnan(x(i, j))) {
 				vector<int> coordinates;
 				coordinates.push_back(i);
 				coordinates.push_back(j);

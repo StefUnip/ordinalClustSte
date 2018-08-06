@@ -1,64 +1,64 @@
-setClass (
+methods::setClass (
   "xhat",
   representation=representation(
     xhat="matrix"
   )
 )
-setClass (
+methods::setClass (
   "W",
   representation=representation(
     W="matrix"
   )
 )
-setClass (
+methods::setClass (
   "zc",
   representation=representation(
     zc="vector"
   )
 )
-setClass (
+methods::setClass (
   "zcchain",
   representation=representation(
     zcchain="list"
   )
 )
-setClass (
+methods::setClass (
   "zrchain",
   representation=representation(
     zrchain="vector"
   )
 )
-setClass (
+methods::setClass (
   "rho",
   representation=representation(
     rho="vector"
   )
 )
-setClass (
+methods::setClass (
   "rhochain",
   representation=representation(
     rhochain="list"
   )
 )
-setClass (
+methods::setClass (
   "pichain",
   representation=representation(
     pichain="vector"
   )
 )
-setClass (
+methods::setClass (
   "params",
   representation=representation(
     params="list"
   )
 )
-setClass (
+methods::setClass (
   "paramschain",
   representation=representation(
     paramschain="list"
   )
 )
-setClass (
+methods::setClass (
   "dlist",
   representation=representation(
     dlist="vector"
@@ -68,7 +68,7 @@ setClass (
 
 
 # Result for co-clustering
-setClass (
+methods::setClass (
   "ResultCoclustOrdinal",
   
   # Defining slot type
@@ -85,7 +85,7 @@ setClass (
 
 
 # Result for clustering
-setClass (
+methods::setClass (
   "ResultClustOrdinal",
   
   # Defining slot type
@@ -103,7 +103,7 @@ setClass (
 
 
 # Result for classification
-setClass (
+methods::setClass (
   "ResultClassifOrdinal",
   
   # Defining slot type
@@ -123,7 +123,7 @@ setClass (
   contains=c("W","zc","rho","params","dlist","xhat")
 )
 
-setClass (
+methods::setClass (
   "ResultPredictionOrdinal",
   
   # Defining slot type

@@ -1,4 +1,4 @@
-setMethod(
+methods::setMethod(
   f="predict",
   signature = "ResultClassifOrdinal",
   definition = function(object, x=matrix(0,nrow=1,ncol=1)) {
@@ -8,9 +8,9 @@ setMethod(
 )
 
 
-setGeneric("plot",function(object){standardGeneric("plot")}) 
+methods::setGeneric("plot",function(object){standardGeneric("plot")}) 
 
-setMethod(
+methods::setMethod(
   f="plot",
   signature = c("ResultClassifOrdinal"),
   definition = function(object) {
@@ -19,7 +19,7 @@ setMethod(
   }
 )
 
-setMethod(
+methods::setMethod(
   f="plot",
   signature = c("ResultCoclustOrdinal"),
   definition = function(object) {
@@ -28,7 +28,7 @@ setMethod(
   }
 )
 
-setMethod(
+methods::setMethod(
   f="plot",
   signature = c("ResultClustOrdinal"),
   definition = function(object) {

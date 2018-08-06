@@ -7,7 +7,7 @@ ClassificationMContext::ClassificationMContext(arma::mat x, arma::vec y, std::ve
 
 	// attributes that are directly instanciated
 	this->_x = x;
-	this->_N = _x.n_rows;
+	this->_Nr = _x.n_rows;
 	this->_y = y;
 	this->_dlist = dlist;
 	this->_kr = kr;
@@ -21,7 +21,7 @@ ClassificationMContext::ClassificationMContext(arma::mat x, arma::vec y, std::ve
 	this->_number_distrib = m.size();
 
 	// attributes regarding columns
-	vector<int> tmp_J(_number_distrib);
+	vector<int> tmp_Jc(_number_distrib);
 	vector<Distribution*> tmp_distrib_objets;
 
 	vector<mat> tmp_Wvec(_number_distrib);
@@ -42,34 +42,34 @@ ClassificationMContext::ClassificationMContext(arma::mat x, arma::vec y, std::ve
 			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _dlist.at(idistrib).size(), _m[im], this->_nbSEM, iterordiEM));
 			im++;
 		}
-		tmp_J[idistrib] = _dlist.at(idistrib).size();
+		tmp_Jc[idistrib] = _dlist.at(idistrib).size();
 		
-		mat tmp_W(tmp_J[idistrib], tmp_J[idistrib], fill::zeros);
+		mat tmp_W(tmp_Jc[idistrib], tmp_Jc[idistrib], fill::zeros);
 		tmp_W.eye();
 		tmp_Wvec[idistrib] = tmp_W;
 		
 	}
-	this->_J = tmp_J;
+	this->_Jc = tmp_Jc;
 	this->_distrib_objects = tmp_distrib_objets;
 	this->_W = tmp_Wvec;
 
 
 	// attributes regarding lines
-	this->_N = _x.n_rows;
+	this->_Nr = _x.n_rows;
 	
 	
-	vector<int> tmp_zr(this->_N);
+	vector<int> tmp_zr(this->_Nr);
 	std::fill(tmp_zr.begin(), tmp_zr.end(), 0);
 	this->_zr = tmp_zr;
 
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		this->_zr[i] = y(i);
 	}
 
 
-	mat tmp_V(_N, _kr, fill::zeros);
+	mat tmp_V(_Nr, _kr, fill::zeros);
 	this->_V = tmp_V;
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		int col = y(i) - 1;
 		_V(i, col) = 1;
 	}
@@ -106,7 +106,7 @@ void ClassificationMContext::initialization() {
 		{
 			
 			mat W;
-			W.eye(_J.at(idistrib),_J.at(idistrib));
+			W.eye(_Jc.at(idistrib),_Jc.at(idistrib));
 			this->_distrib_objects[idistrib]->MstepVW(_V, W, false);
 			
 		}
@@ -116,7 +116,7 @@ void ClassificationMContext::initialization() {
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 
 			mat W;
-			W.eye(_J.at(idistrib),_J.at(idistrib));
+			W.eye(_Jc.at(idistrib),_Jc.at(idistrib));
 			this->_distrib_objects[idistrib]->MstepVW(_V, W, false);
 			// updating rho 
 		}
@@ -134,7 +134,7 @@ void ClassificationMContext::Mstep() {
 	//cout << "=============== M step ===============" << endl;
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		for (int k = 0; k < _kr; k++) {
-			for (int d = 0; d < _J[idistrib]; d++) {
+			for (int d = 0; d < _Jc[idistrib]; d++) {
 				uvec rowind = find(this->_V.col(k) == 1);
 				uvec colind;
 				colind << d;
@@ -150,7 +150,7 @@ void ClassificationMContext::MstepVW() {
 	//_gamma.print();
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		mat W;
-		W.eye(_J.at(idistrib),_J.at(idistrib));
+		W.eye(_Jc.at(idistrib),_Jc.at(idistrib));
 		this->_distrib_objects[idistrib]->MstepVW(_V, W, false);
 		//cout << "mix rho " << idistrib << endl;
 		//_rho.at(idistrib).print();
@@ -181,7 +181,7 @@ void ClassificationMContext::sampleVWStock() {
 void ClassificationMContext::imputeMissingData() {
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		mat W;
-		W.eye(_J.at(idistrib),_J.at(idistrib));
+		W.eye(_Jc.at(idistrib),_Jc.at(idistrib));
 		this->_distrib_objects[idistrib]->imputeMissingData(this->_V, W);
 	}
 }
@@ -190,7 +190,7 @@ bool ClassificationMContext::verif() {
 	bool result = true;
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		mat W;
-		W.eye(_J.at(idistrib),_J.at(idistrib));
+		W.eye(_Jc.at(idistrib),_Jc.at(idistrib));
 		result = this->_distrib_objects[idistrib]->verif(_V, W, _nbindmini);
 		if (result == false) {
 			return false;
@@ -267,8 +267,8 @@ S4 ClassificationMContext::returnClassification() {
     x.slot("W") = resultW;
   
     // labels:
-    vec zr = zeros(_N);
-    for(int i=0; i<_N; i++){
+    vec zr = zeros(_Nr);
+    for(int i=0; i<_Nr; i++){
     	uvec k = find(_V.row(i)==1);
     	zr(i) = k(0)+1;
     }
@@ -302,8 +302,8 @@ S4 ClassificationMContext::returnClassification() {
 	// ************** return to predict: *****************
 	x.slot("kr") = _kr;
 	x.slot("number_distrib") = _number_distrib;
-	x.slot("J") = _J;
-	x.slot("kc") = _J;
+	x.slot("J") = _Jc;
+	x.slot("kc") = _Jc;
 
 
 	List resultDlist(_dlist.size());
@@ -322,34 +322,34 @@ S4 ClassificationMContext::returnClassification() {
 
 double ClassificationMContext::computeICL() {
 	double result = 0;
-	result += -(_kr - 1) / 2 * log(_N);
+	result += -(_kr - 1) / 2 * log(_Nr);
 	// don't know if it should be here:
 	/*for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		result += -(_J[idistrib] - 1) / 2 * log(_J[idistrib]) - _J[idistrib] * _kr / 2 * log(_N*_J[idistrib]);
+		result += -(_Jc[idistrib] - 1) / 2 * log(_Jc[idistrib]) - _Jc[idistrib] * _kr / 2 * log(_Nr*_Jc[idistrib]);
 	}*/
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J[idistrib]; d++)
+		for (int d = 0; d < _Jc[idistrib]; d++)
 		{
-				for (int i = 0; i < _N; i++)
+				for (int i = 0; i < _Nr; i++)
 				{
 					for (int k = 0; k < _kr; k++)
 					{
-						result += _V(i, k)*_distrib_objects[idistrib]->computeICL(i, d, k, d)*_J[idistrib];
+						result += _V(i, k)*_distrib_objects[idistrib]->computeICL(i, d, k, d)*_Jc[idistrib];
 					}
 				}
 			
 		}
 	}
 
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		for (int k = 0; k < _kr; k++) {
 			result += _V(i, k)*log(_resgamma(k));
 		}
 	}
 	// don't know if it should be here: 
 	/*for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J[idistrib]; d++) {
-			result += log(1/ _J[idistrib]);
+		for (int d = 0; d < _Jc[idistrib]; d++) {
+			result += log(1/ _Jc[idistrib]);
 		}
 	}*/
 	return(result);

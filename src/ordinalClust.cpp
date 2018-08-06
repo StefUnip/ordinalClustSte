@@ -297,7 +297,7 @@ S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList,
 	/*for (int iter = 0; iter < nbSEM; iter++) {
 		context.sampleVW();
 	}*/
-	context.SEstep();
+	context.SEstepRow();
 	context.sampleVWStock();
 
 	//context.printResults();

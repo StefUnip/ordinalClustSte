@@ -6,7 +6,7 @@ ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vect
 
 	// attributes that are directly instanciated
 	this->_x = x;
-	this->_N = _x.n_rows;
+	this->_Nr = _x.n_rows;
 	this->_y = y;
 	this->_dlist = dlist;
 	this->_kr = kr;
@@ -21,7 +21,7 @@ ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vect
 	this->_number_distrib = _m.size();
 
 	// attributes regarding columns
-	vector<int> tmp_J(_number_distrib);
+	vector<int> tmp_Jc(_number_distrib);
 	vector<Distribution*> tmp_distrib_objets;
 	vector<vector<int>> tmp_zcvec(_number_distrib);
 	vector<rowvec> tmp_rhovec(_number_distrib);
@@ -51,9 +51,9 @@ ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vect
 			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _kc.at(idistrib), _m[im], this->_nbSEM, iterordiEM));
 			im++;
 		}
-		tmp_J[idistrib] = _dlist.at(idistrib).size();
+		tmp_Jc[idistrib] = _dlist.at(idistrib).size();
 		
-		vector<int> tmp_zc(tmp_J.at(idistrib));
+		vector<int> tmp_zc(tmp_Jc.at(idistrib));
 		std::fill(tmp_zc.begin(), tmp_zc.end(), 0);
 		tmp_zcvec[idistrib] = tmp_zc;
 		rowvec tmp_rho(_kc.at(idistrib), fill::zeros);
@@ -62,18 +62,18 @@ ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vect
 		tmp_resrhovec.push_back(tmp_rho);
 
 		// probas and logprobas tables
-		mat tmp_probaW(tmp_J[idistrib], _kc.at(idistrib), fill::zeros);
+		mat tmp_probaW(tmp_Jc[idistrib], _kc.at(idistrib), fill::zeros);
 		tmp_probaWvec[idistrib] = tmp_probaW;
-		mat tmp_logprobaW(tmp_J[idistrib], _kc.at(idistrib), fill::zeros);
+		mat tmp_logprobaW(tmp_Jc[idistrib], _kc.at(idistrib), fill::zeros);
 		tmp_logprobaWvec[idistrib] = tmp_probaW;
-		mat tmp_W(tmp_J[idistrib], _kc.at(idistrib), fill::zeros);
+		mat tmp_W(tmp_Jc[idistrib], _kc.at(idistrib), fill::zeros);
 		tmp_Wvec[idistrib] = tmp_W;
 
-		mat tmp_zcchain(_nbSEM, tmp_J[idistrib], fill::zeros);
+		mat tmp_zcchain(_nbSEM, tmp_Jc[idistrib], fill::zeros);
 		tmp_zcchainvec[idistrib] = tmp_zcchain;
 		
 	}
-	this->_J = tmp_J;
+	this->_Jc = tmp_Jc;
 	this->_probaW = tmp_probaWvec;
 	this->_logprobaW = tmp_logprobaWvec;
 	this->_zc = tmp_zcvec;
@@ -86,18 +86,18 @@ ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vect
 
 	
 	
-	vector<int> tmp_zr(this->_N);
+	vector<int> tmp_zr(this->_Nr);
 	std::fill(tmp_zr.begin(), tmp_zr.end(), 0);
 	this->_zr = tmp_zr;
 
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		this->_zr[i] = y(i);
 	}
 
 
-	mat tmp_V(_N, _kr, fill::zeros);
+	mat tmp_V(_Nr, _kr, fill::zeros);
 	this->_V = tmp_V;
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		int col = y(i) - 1;
 		_V(i, col) = 1;
 	}
@@ -146,7 +146,7 @@ void ClassificationContext::initialization() {
 			double prob = (double)1 / _kc.at(idistrib);
 			std::fill(vec.begin(), vec.end(), prob);
 			discrete_distribution<> d(vec.begin(), vec.end());
-			for (int i = 0; i<_J.at(idistrib); ++i) {
+			for (int i = 0; i<_Jc.at(idistrib); ++i) {
 				// random!
 				mt19937 gen(_rd());
 				int sample = d(gen);
@@ -238,13 +238,13 @@ void ClassificationContext::MstepVW() {
 	{
 		this->_logprobaW.at(idistrib).zeros();
 		LogProbs result(0, 0);
-		for (int d = 0; d < _J[idistrib]; d++)
+		for (int d = 0; d < _Jc[idistrib]; d++)
 		{
 			this->_logprobaW.at(idistrib).row(d) = log(this->_rho.at(idistrib));
 			for (int h = 0; h < _kc[idistrib]; h++)
 			{
 
-				for (int i = 0; i < _N; i++)
+				for (int i = 0; i < _Nr; i++)
 				{
 
 					for (int k = 0; k < _kr; k++)
@@ -260,7 +260,7 @@ void ClassificationContext::MstepVW() {
 
 	// Computing the probabilites
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J.at(idistrib); d++) {
+		for (int d = 0; d < _Jc.at(idistrib); d++) {
 			for (int h = 0; h < _kc.at(idistrib); h++) {
 				_probaW.at(idistrib)(d, h) = exp(_logprobaW.at(idistrib)(d, h) - logsum(_logprobaW.at(idistrib).row(d)));
 			}
@@ -275,17 +275,17 @@ void ClassificationContext::SEstep()
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
 	{
 		this->_logprobaW.at(idistrib).zeros();
-		for (int d = 0; d < _J.at(idistrib); d++) {
+		for (int d = 0; d < _Jc.at(idistrib); d++) {
 			this->_logprobaW.at(idistrib).row(d) = log(this->_rho.at(idistrib));
 		}
-		TabProbsResults result(_N, _kr, _J.at(idistrib), _kc.at(idistrib));
+		TabProbsResults result(_Nr, _kr, _Jc.at(idistrib), _kc.at(idistrib));
 		result = _distrib_objects[idistrib]->SEstep(_V, _W.at(idistrib));
 		this->_logprobaW.at(idistrib) += result._tabprobaW;
 	}
 
 	// Computing the probabilites
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J.at(idistrib); d++) {
+		for (int d = 0; d < _Jc.at(idistrib); d++) {
 			for (int h = 0; h < _kc.at(idistrib); h++) {
 				this->_probaW.at(idistrib)(d, h) = exp(this->_logprobaW.at(idistrib)(d, h) - logsum(this->_logprobaW.at(idistrib).row(d)));
 			}
@@ -299,7 +299,7 @@ void ClassificationContext::sampleVW() {
 
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		this->_W.at(idistrib).zeros();
-		for (int d = 0; d < _J.at(idistrib); d++) {
+		for (int d = 0; d < _Jc.at(idistrib); d++) {
 			//random!
 			rowvec vec = _probaW.at(idistrib).row(d);
 			//vec.print();
@@ -317,8 +317,8 @@ void ClassificationContext::sampleVWStock() {
 
 	vector<mat> countW(_number_distrib);
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J.at(idistrib); d++) {
-			mat countWid(_J.at(idistrib), _kc.at(idistrib), fill::zeros);
+		for (int d = 0; d < _Jc.at(idistrib); d++) {
+			mat countWid(_Jc.at(idistrib), _kc.at(idistrib), fill::zeros);
 			countW[idistrib] = countWid;
 		}
 	}
@@ -327,7 +327,7 @@ void ClassificationContext::sampleVWStock() {
 		
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 			this->_W.at(idistrib).zeros();
-			for (int d = 0; d < _J.at(idistrib); d++) {
+			for (int d = 0; d < _Jc.at(idistrib); d++) {
 				//random!
 				rowvec vec = _probaW.at(idistrib).row(d);
 				//vec.print();
@@ -344,7 +344,7 @@ void ClassificationContext::sampleVWStock() {
 	//determinging final partitions
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		this->_W.at(idistrib).zeros();
-		for (int d = 0; d < _J.at(idistrib); d++) {
+		for (int d = 0; d < _Jc.at(idistrib); d++) {
 			int maxind = countW.at(idistrib).row(d).index_max();
 			this->_W.at(idistrib)(d, maxind) = 1;
 		}
@@ -382,7 +382,7 @@ void ClassificationContext::fillParameters(int iteration) {
 void ClassificationContext::fillLabels(int iteration) {
 	//cout << "=============== Filling parameters ===============" << endl;
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for(int d = 0; d<_J.at(idistrib); d++){
+		for(int d = 0; d<_Jc.at(idistrib); d++){
 			uvec tmp = find(_W.at(idistrib).row(d)==1);
 			int label = tmp(0);
 			_zcchain.at(idistrib)(iteration,d) = label;
@@ -467,8 +467,8 @@ S4 ClassificationContext::returnClassification() {
 
   
     // labels:
-    vec zr = zeros(_N);
-    for(int i=0; i<_N; i++){
+    vec zr = zeros(_Nr);
+    for(int i=0; i<_Nr; i++){
     	uvec k = find(_V.row(i)==1);
     	zr(i) = k(0)+1;
     }
@@ -478,8 +478,8 @@ S4 ClassificationContext::returnClassification() {
 
     List resultzc(_number_distrib);
     for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-    	vec zc = zeros(_J[idistrib]);
-    	for(int d=0; d<_J[idistrib]; d++){
+    	vec zc = zeros(_Jc[idistrib]);
+    	for(int d=0; d<_Jc[idistrib]; d++){
     		uvec h = find(_W[idistrib].row(d)==1);
     		zc(d) = h(0)+1;
     	}
@@ -531,7 +531,7 @@ S4 ClassificationContext::returnClassification() {
 	x.slot("kr") = _kr;
 	x.slot("kc") = _kc;
 	x.slot("number_distrib") = _number_distrib;
-	x.slot("J") = _J;
+	x.slot("J") = _Jc;
 
 	List resultDlist(_dlist.size());
 	for(int idistrib = 0; idistrib < _dlist.size(); idistrib++){
@@ -549,16 +549,16 @@ S4 ClassificationContext::returnClassification() {
 
 double ClassificationContext::computeICL() {
 	double result = 0;
-	result += -(_kr - 1) / 2 * log(_N);
+	result += -(_kr - 1) / 2 * log(_Nr);
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		result += -(_kc[idistrib] - 1) / 2 * log(_J[idistrib]) - _kc[idistrib] * _kr / 2 * log(_N*_J[idistrib]);
+		result += -(_kc[idistrib] - 1) / 2 * log(_Jc[idistrib]) - _kc[idistrib] * _kr / 2 * log(_Nr*_Jc[idistrib]);
 	}
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J[idistrib]; d++)
+		for (int d = 0; d < _Jc[idistrib]; d++)
 		{
 			for (int h = 0; h < _kc[idistrib]; h++)
 			{
-				for (int i = 0; i < _N; i++)
+				for (int i = 0; i < _Nr; i++)
 				{
 					for (int k = 0; k < _kr; k++)
 					{
@@ -569,13 +569,13 @@ double ClassificationContext::computeICL() {
 		}
 	}
 
-	for (int i = 0; i < _N; i++) {
+	for (int i = 0; i < _Nr; i++) {
 		for (int k = 0; k < _kr; k++) {
 			result += _V(i, k)*log(_resgamma(k));
 		}
 	}
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-		for (int d = 0; d < _J[idistrib]; d++) {
+		for (int d = 0; d < _Jc[idistrib]; d++) {
 			for (int h = 0; h < _kc[idistrib]; h++) {
 				result += _W[idistrib](d, h)*log(_resrho[idistrib](h));
 			}

@@ -104,7 +104,6 @@ nbSEMburn=40
 nbindmini=2
 init = "random"
 
-
 object <- bosclust(x=M,kr=krow, m=m, nbSEM=nbSEM,
     nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
 
@@ -112,7 +111,7 @@ object <- bosclust(x=M,kr=krow, m=m, nbSEM=nbSEM,
 
 ### Plotting the result
 
-```{r echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 
 plot(object)
 
@@ -157,7 +156,6 @@ nbSEMburn=40
 nbindmini=2
 init = "kmeans"
 
-
 # Co-clustering execution
 object <- boscoclust(x=M,kr=krow,kc=kcol,m=m,nbSEM=nbSEM,
           nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
@@ -200,6 +198,7 @@ set.seed(5)
 
 # loading the ordinal data
 M <- as.matrix(dataqol.classif[,2:29])
+
 
 # creating the classes values
 y <- as.vector(dataqol.classif$death)
