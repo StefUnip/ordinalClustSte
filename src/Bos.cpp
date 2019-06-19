@@ -5,8 +5,8 @@ const double inf = std::numeric_limits<double>::infinity();
 
 
 
-Bos::Bos(mat xsep, int kr, int kc, int m, int nbSEM, unsigned int iterordiEM)
-	:Distribution(xsep, kr, kc, nbSEM)
+Bos::Bos(mat xsep, int kr, int kc, int m, int nbSEM, int seed, unsigned int iterordiEM)
+	:Distribution(xsep, kr, kc, nbSEM, seed)
 {
 	this->_name = "Bos";
 	this->_m = m;
@@ -49,12 +49,22 @@ Bos::~Bos()
 void Bos::missingValuesInit() {
 	//_xsepCube = zeros(_Nr, _Jc, _m);
 	for (int imiss = 0; imiss < _miss.size(); imiss++) {
-		mt19937 gen(_rd());
+		
+		// RANDOM
+		/* mt19937 gen(_rd());
 		double eqprob = (double)1 / _m;
 		vec vecprob(_m, fill::ones);
 		vecprob = vecprob*eqprob;
 		discrete_distribution<> d(vecprob.begin(), vecprob.end()); // maybe a problem?
-		int sample = d(gen);
+		int sample = d(gen);*/
+
+		boost::mt19937 generator(this->_seed);
+		double eqprob = (double)1 / _m;
+		vec vecprob(_m, fill::ones);
+		vecprob = vecprob*eqprob;
+		boost::random::discrete_distribution<int> distribution (vecprob.begin(),vecprob.end());
+		int sample = distribution(generator);
+
 		_xsep(_miss.at(imiss)[0], _miss.at(imiss)[1]) = sample + 1;
 		_xsepCube.tube(_miss.at(imiss)[0], _miss.at(imiss)[1]) = zeros(_m);
 		_xsepCube(_miss.at(imiss)[0], _miss.at(imiss)[1], sample) = 1;
@@ -191,9 +201,9 @@ void Bos::imputeMissingData(mat V, mat W) {
 
 		vector<int> coordinates = _miss.at(imiss);
 		int miss_row = coordinates.at(0);
-		uvec k = arma::find(V.row(miss_row) == 1);
+		arma::uvec k = arma::find(V.row(miss_row) == 1);
 		int miss_col = coordinates.at(1);
-		uvec h = arma::find(W.row(miss_col) == 1);
+		arma::uvec h = arma::find(W.row(miss_col) == 1);
 
 		vector<double> proba(_m);
 
@@ -202,10 +212,17 @@ void Bos::imputeMissingData(mat V, mat W) {
 			proba[im] = _cubeProbs(k(0),h(0),im);
 		}
 
-		mt19937 gen(_rd());
+		// RANDOM
+		/* mt19937 gen(_rd());
 		discrete_distribution<> d(proba.begin(), proba.end());
-		double sample = d(gen);
+		double sample = d(gen);*/
+
+		boost::mt19937 generator(this->_seed);
+		boost::random::discrete_distribution<int> distribution (proba.begin(),proba.end());
+		int sample = distribution(generator);
+		
 		this->_xsep(miss_row, miss_col) = sample+1;
+		
 		_xsepCube.tube(_miss.at(imiss)[0], _miss.at(imiss)[1]) = zeros(_m);
 		_xsepCube(_miss.at(imiss)[0], _miss.at(imiss)[1], sample) = 1;
 	}
@@ -214,7 +231,7 @@ void Bos::imputeMissingData(mat V, mat W) {
 	return;
 }
 
-void Bos::Mstep(uvec rowind, uvec colind, int k, int h, bool init) 
+void Bos::Mstep(arma::uvec rowind, arma::uvec colind, int k, int h, bool init) 
 {
 	//cout << "BOS m step" << endl;
 	colvec tabp0;

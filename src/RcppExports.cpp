@@ -6,9 +6,19 @@
 
 using namespace Rcpp;
 
+// testSeed
+void testSeed(int seed);
+RcppExport SEXP _ordinalClust_testSeed(SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    testSeed(seed);
+    return R_NilValue;
+END_RCPP
+}
 // coclust
-S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList, int kr, std::vector<int> kc, std::string init, int nbSEM, int nbSEMburn, int nbRepeat, int nbindmini, const std::vector<int> m);
-RcppExport SEXP _ordinalClust_coclust(SEXP xMatSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP kcSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbRepeatSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
+S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList, int kr, std::vector<int> kc, std::string init, int nbSEM, int nbSEMburn, int nbRepeat, int nbindmini, const std::vector<int> m, std::vector<double> percentRandomB, int seed);
+RcppExport SEXP _ordinalClust_coclust(SEXP xMatSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP kcSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbRepeatSEXP, SEXP nbindminiSEXP, SEXP mSEXP, SEXP percentRandomBSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,13 +32,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nbRepeat(nbRepeatSEXP);
     Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(coclust(xMat, myList, kr, kc, init, nbSEM, nbSEMburn, nbRepeat, nbindmini, m));
+    Rcpp::traits::input_parameter< std::vector<double> >::type percentRandomB(percentRandomBSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(coclust(xMat, myList, kr, kc, init, nbSEM, nbSEMburn, nbRepeat, nbindmini, m, percentRandomB, seed));
     return rcpp_result_gen;
 END_RCPP
 }
 // clust
-S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList, int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m);
-RcppExport SEXP _ordinalClust_clust(SEXP xMatSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
+S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList, int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m, std::vector<double> percentRandomB, int seed);
+RcppExport SEXP _ordinalClust_clust(SEXP xMatSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP, SEXP percentRandomBSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -40,13 +52,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nbSEMburn(nbSEMburnSEXP);
     Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(clust(xMat, myList, kr, init, nbSEM, nbSEMburn, nbindmini, m));
+    Rcpp::traits::input_parameter< std::vector<double> >::type percentRandomB(percentRandomBSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(clust(xMat, myList, kr, init, nbSEM, nbSEMburn, nbindmini, m, percentRandomB, seed));
     return rcpp_result_gen;
 END_RCPP
 }
 // classif
-S4 classif(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myList, int kr, std::vector<int> kc, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m);
-RcppExport SEXP _ordinalClust_classif(SEXP xMatSEXP, SEXP yVecSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP kcSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
+S4 classif(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myList, int kr, std::vector<int> kc, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m, std::vector<double> percentRandomB, int seed);
+RcppExport SEXP _ordinalClust_classif(SEXP xMatSEXP, SEXP yVecSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP kcSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP, SEXP percentRandomBSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -60,13 +74,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nbSEMburn(nbSEMburnSEXP);
     Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(classif(xMat, yVec, myList, kr, kc, init, nbSEM, nbSEMburn, nbindmini, m));
+    Rcpp::traits::input_parameter< std::vector<double> >::type percentRandomB(percentRandomBSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(classif(xMat, yVec, myList, kr, kc, init, nbSEM, nbSEMburn, nbindmini, m, percentRandomB, seed));
     return rcpp_result_gen;
 END_RCPP
 }
 // classifM
-S4 classifM(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myList, int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m);
-RcppExport SEXP _ordinalClust_classifM(SEXP xMatSEXP, SEXP yVecSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP) {
+S4 classifM(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myList, int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, const std::vector<int> m, int seed);
+RcppExport SEXP _ordinalClust_classifM(SEXP xMatSEXP, SEXP yVecSEXP, SEXP myListSEXP, SEXP krSEXP, SEXP initSEXP, SEXP nbSEMSEXP, SEXP nbSEMburnSEXP, SEXP nbindminiSEXP, SEXP mSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -79,19 +95,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nbSEMburn(nbSEMburnSEXP);
     Rcpp::traits::input_parameter< int >::type nbindmini(nbindminiSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(classifM(xMat, yVec, myList, kr, init, nbSEM, nbSEMburn, nbindmini, m));
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(classifM(xMat, yVec, myList, kr, init, nbSEM, nbSEMburn, nbindmini, m, seed));
     return rcpp_result_gen;
 END_RCPP
 }
 // prediction
-S4 prediction(S4 classif, NumericMatrix xMat_topredict);
-RcppExport SEXP _ordinalClust_prediction(SEXP classifSEXP, SEXP xMat_topredictSEXP) {
+S4 prediction(S4 classif, NumericMatrix xMat_topredict, int seed);
+RcppExport SEXP _ordinalClust_prediction(SEXP classifSEXP, SEXP xMat_topredictSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< S4 >::type classif(classifSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type xMat_topredict(xMat_topredictSEXP);
-    rcpp_result_gen = Rcpp::wrap(prediction(classif, xMat_topredict));
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(prediction(classif, xMat_topredict, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -153,11 +171,12 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ordinalClust_coclust", (DL_FUNC) &_ordinalClust_coclust, 10},
-    {"_ordinalClust_clust", (DL_FUNC) &_ordinalClust_clust, 8},
-    {"_ordinalClust_classif", (DL_FUNC) &_ordinalClust_classif, 10},
-    {"_ordinalClust_classifM", (DL_FUNC) &_ordinalClust_classifM, 9},
-    {"_ordinalClust_prediction", (DL_FUNC) &_ordinalClust_prediction, 2},
+    {"_ordinalClust_testSeed", (DL_FUNC) &_ordinalClust_testSeed, 1},
+    {"_ordinalClust_coclust", (DL_FUNC) &_ordinalClust_coclust, 12},
+    {"_ordinalClust_clust", (DL_FUNC) &_ordinalClust_clust, 10},
+    {"_ordinalClust_classif", (DL_FUNC) &_ordinalClust_classif, 12},
+    {"_ordinalClust_classifM", (DL_FUNC) &_ordinalClust_classifM, 10},
+    {"_ordinalClust_prediction", (DL_FUNC) &_ordinalClust_prediction, 3},
     {"_ordinalClust_allej", (DL_FUNC) &_ordinalClust_allej, 2},
     {"_ordinalClust_pejp1zj1_ej", (DL_FUNC) &_ordinalClust_pejp1zj1_ej, 4},
     {"_ordinalClust_pejp1_ej", (DL_FUNC) &_ordinalClust_pejp1_ej, 4},

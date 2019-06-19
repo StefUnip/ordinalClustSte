@@ -3,14 +3,15 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 %%  ~~function to do ... ~~
-bosclust
+Function to perform a clustering
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 This function performs a clustering on ordinal data by using the multiple latent block model (cf references for further  details). It allows the user to define D groups of variables that have different number of levels. A BOS distribution is used, and the parameters inference is realized with an SEM-Gbbs algorithm.
 }
 \usage{
-bosclust(x, idx_list=c(0), kr, init, nbSEM, nbSEMburn, nbindmini, m=0)
+bosclust(x, idx_list=c(1), kr, init, nbSEM, nbSEMburn, 
+        nbindmini, m=0, percentRandomB=0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -44,7 +45,10 @@ bosclust(x, idx_list=c(0), kr, init, nbSEM, nbSEMburn, nbindmini, m=0)
   }
   \item{init}{
   %%     ~~Describe \code{init} here~~
-  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans" or "random".
+  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans", "random" or "randomBurnin".
+  }
+  \item{percentRandomB}{
+  Vector of length 1. Indicates the percentage of resampling when init is equal to "randomBurnin".
   }
 }
 %%\details{

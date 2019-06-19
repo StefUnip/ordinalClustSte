@@ -15,11 +15,18 @@
 #include <vector>
 #include <numeric>
 
+// [[Rcpp::depends(BH)]]
+#include <boost/random.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
+
 class ClusteringContext
 {
 public:
-	ClusteringContext(arma::mat x, std::vector< arma::urowvec > dlist, int kr, std::string init, 
-		int nbSEM, int nbSEMburn, int nbindmini, std::vector< int > m);
+	ClusteringContext(arma::mat x, std::vector< arma::urowvec > dlist, 
+					int kr, std::string init, int nbSEM, int nbSEMburn, 
+					int nbindmini, std::vector< int > m, 
+					std::vector<double> percentRandomB, int seed);
 	ClusteringContext();
 	~ClusteringContext();
 	void missingValuesInit();
@@ -28,10 +35,12 @@ public:
 	void SEstepRow();
 	void Mstep();
 	void MstepVW();
+	void noRowDegenerancy(vector<vector<int>> distrib_col, int iter);
 	void sampleVW();
 	void sampleVWStock();
 	void imputeMissingData();
 	bool verif();
+	vector<vector<int>> verification();
 	void fillParameters(int iteration);
 	void fillLabels(int iteration);
 	void getBurnedParameters();
@@ -69,6 +78,11 @@ protected:
 	random_device _rd;
 
 	double _icl;
+
+	int _seed;
+
+	// complex init
+	std::vector<double> _percentRandomB;
 
 	// Utils
 	double logsum(rowvec logx);

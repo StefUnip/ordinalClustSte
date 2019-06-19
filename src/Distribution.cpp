@@ -1,8 +1,9 @@
 #include "Distribution.h"
 
 
-Distribution::Distribution(mat xsep, int kr, int kc, int nbSEM)
+Distribution::Distribution(mat xsep, int kr, int kc, int nbSEM, int seed)
 {
+	this->_seed = seed;
 	this->_nbSEM = nbSEM;
 	this->_xsep = xsep;
 	this->_Nr = xsep.n_rows;
@@ -129,6 +130,28 @@ bool Distribution::verif(mat V, mat W, int nbindmini) {
 			int size = indicesV.n_elem * indicesW.n_elem;
 			if (size < nbindmini) {
 				return false;
+			}
+		}
+	}
+
+	return result;
+}
+
+int Distribution::verification(const mat& V, const mat& W, int nbindmini) {
+	int result = -1;
+	for (int k = 0; k < _kr; k++) {
+		for (int h = 0; h < _kc; h++) {
+			uvec indicesV = arma::find(V.col(k) == 1);
+			uvec indicesW = arma::find(W.col(h) == 1);
+			int size = indicesV.n_elem * indicesW.n_elem;
+			if (size < nbindmini) {
+				
+				if(indicesV.n_elem<indicesW.n_elem){
+					return ((-k));
+				}
+				else{
+					return (h+1);
+				}
 			}
 		}
 	}

@@ -3,14 +3,15 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 %%  ~~function to do ... ~~
-boscoclust
+Function to perform a co-clustering
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 This function performs a co-clustering on ordinal data by using the latent block model (cf references for further  details). A BOS distribution is used, and the parameters inference is realized with an SEM-Gbbs algorithm.
 }
 \usage{
-boscoclust(x, idx_list=c(0), kr, kc, init, nbSEM, nbSEMburn, nbRepeat=1, nbindmini, m=0)
+boscoclust(x=matrix(0,nrow=1,ncol=1), idx_list=c(1), kr, kc, init, nbSEM, nbSEMburn, 
+          nbRepeat=1, nbindmini, m=0, percentRandomB=0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -52,7 +53,10 @@ boscoclust(x, idx_list=c(0), kr, kc, init, nbSEM, nbSEMburn, nbRepeat=1, nbindmi
   }
   \item{init}{
   %%     ~~Describe \code{init} here~~
-  String that indicates the kind of initialisation. Must one of these two words :  "kmeans" or "random".
+  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans", "random" or "randomBurnin".
+  }
+  \item{percentRandomB}{
+  Vector of length 2. Indicates the percentage of resampling when init is equal to "randomBurnin".
   }
 }
 

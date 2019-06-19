@@ -2,7 +2,9 @@
 
 CoClusteringContext::CoClusteringContext(arma::mat x, std::vector< arma::urowvec > dlist,
 	int kr, std::vector< int > kc, std::string init, int nbSEM, int nbSEMburn, 
-	int nbindmini, std::vector< int > m) {
+	int nbindmini, std::vector< int > m, vector<double> percentRandomB, int seed) {
+
+	this->_seed = seed;
 
 	// attributes that are directly instanciated
 	this->_x = x;
@@ -15,6 +17,9 @@ CoClusteringContext::CoClusteringContext(arma::mat x, std::vector< arma::urowvec
 	this->_nbSEM = nbSEM;
 	this->_nbSEMburn = nbSEMburn;
 	this->_nbindmini = nbindmini;
+
+	// percents for complex initialization
+	this->_percentRandomB = percentRandomB; 
 
 	//attributes to construct
 	this->_number_distrib = _m.size();
@@ -48,7 +53,8 @@ CoClusteringContext::CoClusteringContext(arma::mat x, std::vector< arma::urowvec
 		
 		if (distrib_name == "Bos") {
 			unsigned int iterordiEM = 50;
-			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _kc.at(idistrib), _m[im], this->_nbSEM, iterordiEM));
+			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _kc.at(idistrib), _m[im], this->_nbSEM, 
+			iterordiEM, this->_seed));
 			im++;
 		}
 		
@@ -135,43 +141,49 @@ CoClusteringContext::CoClusteringContext()
 
 CoClusteringContext::~CoClusteringContext()
 {
+	for (int i = 0; i < _distrib_objects.size(); i++)
+    {
+        delete _distrib_objects[i]; // this is needed to free the memory
+    }
+    _distrib_objects.clear();
 }
 
 bool CoClusteringContext::initialization() {
 	//cout << "=============== initialization ===============" << endl;
-	//arma_rng::set_seed_random();
-	if (_init == "random") {
+	if (_init == "random" || _init=="randomBurnin") {
 		// partitions V
+		//RANDOM
+		/* vector<double> vec(_kr);
+		double prob = (double)1 / _kr;
+		std::fill(vec.begin(), vec.end(), prob);
+		discrete_distribution<> d(vec.begin(), vec.end()); */
 		vector<double> vec(_kr);
 		double prob = (double)1 / _kr;
 		std::fill(vec.begin(), vec.end(), prob);
-		discrete_distribution<> d(vec.begin(), vec.end());
+		boost::mt19937 generator(this->_seed);
+		boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+
 		this->_V.zeros();
 		for (int i = 0; i<_Nr; ++i) {
 			// random!
-			mt19937 gen(_rd());
-			int sample = d(gen);
-			//int sample = randi(1, distr_param(0, (_kr - 1)))(0);
+			int sample = distribution(generator);
 			this->_V(i, sample) = 1;
 		}
 		// updating gamma
 		this->_gamma = this->getMeans(this->_V);
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
 		{
-			/*vector<double> vec(_kc.at(idistrib));
-			double prob = (double)1 / _kc.at(idistrib);
-			std::fill(vec.begin(), vec.end(), prob);
-			discrete_distribution<> d(vec.begin(), vec.end());*/
+
 			this->_W.at(idistrib).zeros();
 			arma::vec probas(_kc[idistrib]);
 			probas.ones();
 			probas = probas/_kc[idistrib];
-			discrete_distribution<> d(probas.begin(), probas.end());
+			// RANDOM
+			// discrete_distribution<> d(probas.begin(), probas.end());
+			boost::random::discrete_distribution<int> distribution (probas.begin(),probas.end());
 			for (int i = 0; i<_Jc.at(idistrib); ++i) {
-				// random!
-				/*mt19937 gen(_rd());
-				int sample = d(gen);*/
-				int sample = randi(1, distr_param(0, (_kc[idistrib] - 1)))(0);
+
+				int sample = distribution(generator);
 				this->_W.at(idistrib)(i, sample) = 1;
 			}
 
@@ -263,6 +275,75 @@ void CoClusteringContext::MstepVW() {
 		//cout << "mix W :" << endl;
 		//this->_W.at(idistrib).print();
 	}
+}
+
+void CoClusteringContext::noRowDegenerancy(vector<vector<int>> distrib_col, int iter){
+	double percent = _percentRandomB[0]/100;
+
+	int count = 0;
+	for(int nb_degen = 0; nb_degen<distrib_col.size(); nb_degen++){
+		int VorW = distrib_col.at(nb_degen)[1];
+
+		if(VorW<0){
+			count++;
+			int nbToSample = ceil(percent*_Nr);
+			// RANDOM
+			/* std::random_device rdtest;     
+			std::mt19937 rng(rdtest());    
+			std::uniform_int_distribution<int> uniW(0,(int)(_Nr-1)); 
+			std::uniform_int_distribution<int> unikr(0,(int)(_kr-1)); */
+			boost::mt19937 generator((-VorW)+iter);
+			boost::random::uniform_int_distribution<int> uniW(0,(int)(_Nr-1));
+			boost::random::uniform_int_distribution<int> unikr(0,(int)(_kr-1));
+			for(int i = 0; i<nbToSample; i++){
+				int line = uniW(generator);
+				//cout << "line : " << line << endl;
+				rowvec newSample(_kr);
+				newSample.zeros();
+				(this->_V).row(line) = newSample;
+
+				int cluster = unikr(generator);
+				this->_V(line, cluster) = 1;
+
+			}
+		}
+		if(count>0) return;
+	}
+	
+}
+
+void CoClusteringContext::noColDegenerancy(vector<vector<int>> distrib_col, int iter){
+	double percent = _percentRandomB[1]/100;
+
+	for(int nb_degen = 0; nb_degen<distrib_col.size(); nb_degen++){
+		int idistrib = distrib_col.at(nb_degen)[0];
+		int VorW = distrib_col.at(nb_degen)[1];
+
+		if(!(VorW<0)){
+			int nbToSample = ceil(percent*_Jc[idistrib]);
+			// RANDOM
+			/* std::random_device rdtest;     // only used once to initialise (seed) engine
+			std::mt19937 rng(rdtest());    // random-number engine used (Mersenne-Twister in this case)
+			std::uniform_int_distribution<int> uniW(0,(int)(_Jc[idistrib]-1)); // guaranteed unbiased
+			std::uniform_int_distribution<int> unikc(0,(int)(_kc[idistrib]-1)); */
+			boost::mt19937 generator(VorW+iter);
+			boost::random::uniform_int_distribution<int> uniW(0,(int)(_Jc[idistrib]-1)); 
+			boost::random::uniform_int_distribution<int> unikc(0,(int)(_kc[idistrib]-1));
+			for(int i = 0; i<nbToSample; i++){
+				int column = uniW(generator);
+				//cout << "column : " << column << endl;
+				rowvec newSample(_kc[idistrib]);
+				newSample.zeros();
+				(this->_W[idistrib]).row(column) = newSample;
+
+				int cluster = unikc(generator);
+				this->_W[idistrib](column, cluster) = 1;
+
+			}
+		}
+
+	}
+	
 }
 
 
@@ -361,25 +442,30 @@ void CoClusteringContext::sampleVW() {
 	// Sampling V and W
 
 	this->_V.zeros();
-	//std::default_random_engine gen;
 	for (int i = 0; i < _Nr; i++) {
-		// random!
-		rowvec vec = _probaV.row(i);
+		//RANDOM
+		/* rowvec vec = _probaV.row(i);
 		discrete_distribution<> dis(vec.begin(), vec.end());
-		//int sample = dis(gen);
 		mt19937 gen(_rd());
-		int sample = dis(gen);
+		int sample = dis(gen); */
+		rowvec vec = _probaV.row(i);
+		boost::mt19937 generator(this->_seed);
+		boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+		int sample = distribution(generator);
 		this->_V(i, sample) = 1;
 	}
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		this->_W.at(idistrib).zeros();
 		for (int d = 0; d < _Jc.at(idistrib); d++) {
-			//random!
-			rowvec vec = _probaW.at(idistrib).row(d);
-			//vec.print();
+			//RANDOM
+			/* rowvec vec = _probaW.at(idistrib).row(d);
 			discrete_distribution<> dis(vec.begin(), vec.end());
 			mt19937 gen(_rd());
-			int sample = dis(gen);
+			int sample = dis(gen); */
+			rowvec vec = _probaW.at(idistrib).row(d);
+			boost::mt19937 generator(this->_seed);
+			boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+			int sample = distribution(generator);
 			this->_W.at(idistrib)(d, sample) = 1;
 		}
 
@@ -391,22 +477,20 @@ void CoClusteringContext::sampleV() {
 
 	this->_V.zeros();
 
-	/*cout << "rows : " << endl;
-	_probaV.row(0).print();
-	_probaV.row(1).print();
-	_probaV.row(2).print();
-	_probaV.row(3).print();
-	_probaV.row(4).print();*/
-	//std::default_random_engine gen;
+
     for (int i = 0; i < _Nr; i++) {
-		// random!
-		rowvec vec = _probaV.row(i);
+		//RANDOM
+		/* rowvec vec = _probaV.row(i);
 		discrete_distribution<> dis(vec.begin(), vec.end());
 		mt19937 gen(_rd());
-		int sample = dis(gen);
+		int sample = dis(gen); */
+		rowvec vec = _probaV.row(i);
+		boost::mt19937 generator(this->_seed);
+		boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+		int sample = distribution(generator);
+		
 		this->_V(i, sample) = 1;
 	}
-	//this->_V.print();
 
 	return;
 }
@@ -415,21 +499,17 @@ void CoClusteringContext::sampleW() {
 	// Sampling W
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		this->_W.at(idistrib).zeros();
-		/*cout << "W" << endl;
-		_probaW.at(idistrib).print();*/
-
-		/*cout << "cols : "  << idistrib << endl;
-		_probaW.at(idistrib).row(0).print();
-		_probaW.at(idistrib).row(1).print();
-		_probaW.at(idistrib).row(2).print();
-		_probaW.at(idistrib).row(3).print();
-		_probaW.at(idistrib).row(4).print();*/
 
 		for (int d = 0; d < _Jc.at(idistrib); d++) {
-			rowvec vec = _probaW.at(idistrib).row(d);
+			// RANDOM
+			/* rowvec vec = _probaW.at(idistrib).row(d);
 			discrete_distribution<> dis(vec.begin(), vec.end());
 			mt19937 gen(_rd());
-			int sample = dis(gen);
+			int sample = dis(gen); */
+			rowvec vec = _probaW.at(idistrib).row(d);
+			boost::mt19937 generator(this->_seed);
+			boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+			int sample = distribution(generator);
 			this->_W.at(idistrib)(d, sample) = 1;
 		}
 	}
@@ -452,24 +532,30 @@ void CoClusteringContext::sampleVWStock() {
 		this->_V.zeros();
 		//std::default_random_engine gen;
 		for (int i = 0; i < _Nr; i++) {
-			// random!
-			rowvec vec = _probaV.row(i);
+			//RANDOM
+			/* rowvec vec = _probaV.row(i);
 			discrete_distribution<> dis(vec.begin(), vec.end());
-			//int sample = dis(gen);
 			mt19937 gen(_rd());
-			int sample = dis(gen);
+			int sample = dis(gen); */
+			rowvec vec = _probaV.row(i);
+			boost::mt19937 generator(this->_seed);
+			boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+			int sample = distribution(generator);
 			this->_V(i, sample) = 1;
 			countV(i, sample) += 1;
 		}
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 			this->_W.at(idistrib).zeros();
 			for (int d = 0; d < _Jc.at(idistrib); d++) {
-				//random!
-				rowvec vec = _probaW.at(idistrib).row(d);
-				//vec.print();
+				//RANDOM
+				/* rowvec vec = _probaW.at(idistrib).row(d);
 				discrete_distribution<> dis(vec.begin(), vec.end());
 				mt19937 gen(_rd());
-				int sample = dis(gen);
+				int sample = dis(gen); */
+				rowvec vec = _probaW.at(idistrib).row(d);
+				boost::mt19937 generator(this->_seed);
+				boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+				int sample = distribution(generator);
 				this->_W.at(idistrib)(d, sample) = 1;
 				countW.at(idistrib)(d, sample) += 1;
 
@@ -508,6 +594,22 @@ bool CoClusteringContext::verif() {
 		if (result == false) {			
 			return result;
 		}
+	}
+	return result;
+}
+
+vector<vector<int>> CoClusteringContext::verification() {
+	vector<vector<int>> result;
+	for (int idistrib = 0; idistrib < this->_number_distrib; idistrib++) {
+		int verifD = this->_distrib_objects[idistrib]->verification(_V, _W.at(idistrib), _nbindmini);
+
+		if (!(verifD==-1)) {			
+			vector<int> newline(2);
+			newline.at(0) = idistrib;
+			newline.at(1) = verifD; 
+			result.push_back(newline);
+		}
+		
 	}
 	return result;
 }

@@ -1,8 +1,12 @@
 #include "ClusteringContext.h"
 
 ClusteringContext::ClusteringContext(arma::mat x, std::vector< arma::urowvec > dlist,
-	int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, std::vector< int > m) {
+									int kr, std::string init, int nbSEM, int nbSEMburn, 
+									int nbindmini, std::vector< int > m, 
+									std::vector<double> percentRandomB, int seed) {
 
+
+	this->_seed = seed;
 	// attributes that are directly instanciated
 	this->_x = x;
 	this->_Nr = _x.n_rows;
@@ -17,6 +21,9 @@ ClusteringContext::ClusteringContext(arma::mat x, std::vector< arma::urowvec > d
 
 	//attributes to construct
 	this->_number_distrib = _m.size();
+
+	// atributes for complex init
+	this->_percentRandomB = percentRandomB;
 
 	// attributes regarding columns
 	vector<int> tmp_Jc(_number_distrib);
@@ -40,7 +47,8 @@ ClusteringContext::ClusteringContext(arma::mat x, std::vector< arma::urowvec > d
 		
 		if (distrib_name == "Bos") {
 			unsigned int iterordiEM = 10;
-			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _dlist.at(idistrib).size(), _m[im], this->_nbSEM, iterordiEM));
+			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _dlist.at(idistrib).size(), _m[im], this->_nbSEM, 
+			iterordiEM, this->_seed));
 			im++;
 		}
 
@@ -95,24 +103,31 @@ ClusteringContext::~ClusteringContext()
 void ClusteringContext::initialization() {
 	//cout << "=============== initialization ===============" << endl;
 	//arma_rng::set_seed_random();
-	if (_init == "random") {
+	if (_init == "random" || _init == "randomBurnin") {
 		// partitions V
+		//RANDOM
+		/* vector<double> vec(_kr);
+		double prob = (double)1 / _kr;
+		std::fill(vec.begin(), vec.end(), prob);
+		discrete_distribution<> d(vec.begin(), vec.end()); */
+
+		boost::mt19937 generator(this->_seed);
 		vector<double> vec(_kr);
 		double prob = (double)1 / _kr;
 		std::fill(vec.begin(), vec.end(), prob);
-		discrete_distribution<> d(vec.begin(), vec.end());
+		boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+
+
 		for (int i = 0; i<_Nr; ++i) {
 			// random!
-			mt19937 gen(_rd());
-			int sample = d(gen);
-			//int sample = randi(1, distr_param(0, (_kr - 1)))(0);
+			/* mt19937 gen(_rd());
+			int sample = d(gen);*/
+			int sample = distribution(generator);
 
 			this->_V(i, sample) = 1;
 		}
 		// updating gamma
 		this->_gamma = this->getMeans(this->_V);
-		//cout << "gamma" << endl;
-		//_gamma.print();
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
 		{
 			for (int k = 0; k < _kr; k++) {
@@ -128,12 +143,8 @@ void ClusteringContext::initialization() {
 	}
 	if (_init == "kmeans") {
 		this->_V = this->kmeansi();
-		//updating gamma
 		this->_gamma = this->getMeans(this->_V);
-		//cout << "gamma" << endl;
-		//_gamma.print();
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
-			//updating distribution parameters;
 			for (int k = 0; k < _kr; k++) {
 				for (int d = 0; d < _Jc[idistrib]; d++) {
 					uvec rowind = find(this->_V.col(k) == 1);
@@ -145,43 +156,6 @@ void ClusteringContext::initialization() {
 		}
 	}
 }
-
-/*void ClusteringContext::SEstep()
-{
-	//cout << "=============== SE step ===============" << endl;
-	// Computing the log-probabilites
-	this->_logprobaV.zeros();
-	for (int i = 0; i < _Nr; i++) {
-		this->_logprobaV.row(i) = log(this->_gamma);
-	}
-
-	for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
-	{
-
-		LogProbs result(0, 0);
-		for (int d = 0; d < _Jc[idistrib]; d++)
-		{
-			for (int i = 0; i < _Nr; i++)
-			{
-				for (int k = 0; k < _kr; k++)
-				{
-					result = _distrib_objects[idistrib]->SEstep(i, d, k, d);
-					_logprobaV(i, k) += result._row;
-						
-				}
-			}
-		}
-
-	}
-
-	// Computing the probabilites
-	for (int i = 0; i < _Nr; i++) {
-		for (int k = 0; k < _kr; k++) {
-			_probaV(i, k) = exp(_logprobaV(i, k) - logsum(_logprobaV.row(i)));
-		}
-	}
-
-}*/
 
 void ClusteringContext::SEstep()
 {
@@ -213,7 +187,6 @@ void ClusteringContext::SEstep()
 
 void ClusteringContext::SEstepRow()
 {
-	//cout << "=============== SE step ===============" << endl;
 	// Computing the log-probabilites
 	this->_logprobaV.zeros();
 	this->_logprobaV.each_row() += log(this->_gamma);  
@@ -234,10 +207,6 @@ void ClusteringContext::SEstepRow()
 			this->_probaV(i, k) = exp(this->_logprobaV(i, k) - logsum(_logprobaV.row(i)));
 		}
 	}
-
-	//cout << "SEstepRow: " << endl;
-	//this->_probaV.row(1).print();
-
 }
 
 void ClusteringContext::missingValuesInit() {
@@ -262,17 +231,46 @@ void ClusteringContext::Mstep() {
 }
 
 void ClusteringContext::MstepVW() {
-	//cout << "=============== M step ===============" << endl;
 	this->_gamma = this->getMeans(this->_V);
-	//cout << "mix gamma " << endl;
-	//_gamma.print();
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		mat Wtmp = zeros(_Jc[idistrib],_Jc[idistrib]);
 		Wtmp.eye();
 		this->_distrib_objects[idistrib]->MstepVW(_V, Wtmp, false);
-		//cout << "mix rho " << idistrib << endl;
-		//_rho.at(idistrib).print();
 	}
+}
+
+void ClusteringContext::noRowDegenerancy(vector<vector<int>> distrib_col, int iter){
+	double percent = _percentRandomB[0]/100;
+
+	int count = 0;
+	for(int nb_degen = 0; nb_degen<distrib_col.size(); nb_degen++){
+		int VorW = distrib_col.at(nb_degen)[1];
+		//cout << "VorW: " << VorW << endl;
+		if(VorW<0){
+			count++;
+			int nbToSample = ceil(percent*_Nr);
+			// RANDOM
+			/* std::random_device rdtest;     
+			std::mt19937 rng(rdtest());    
+			std::uniform_int_distribution<int> uniW(0,(int)(_Nr-1)); 
+			std::uniform_int_distribution<int> unikr(0,(int)(_kr-1)); */
+			boost::mt19937 generator((-VorW)+iter);
+			boost::random::uniform_int_distribution<int> uniW(0,(int)(_Nr-1));
+			boost::random::uniform_int_distribution<int> unikr(0,(int)(_kr-1));
+			for(int i = 0; i<nbToSample; i++){
+				int line = uniW(generator);
+				//cout << "line: " << line << endl;
+				rowvec newSample(_kr);
+				newSample.zeros();
+				(this->_V).row(line) = newSample;
+				int cluster = unikr(generator);
+				this->_V(line, cluster) = 1;
+
+			}
+		}
+		if(count>0) return;
+	}
+	
 }
 
 void ClusteringContext::sampleVW() {
@@ -281,12 +279,15 @@ void ClusteringContext::sampleVW() {
 	this->_V.zeros();
 	//std::default_random_engine gen;
 	for (int i = 0; i < _Nr; i++) {
-		// random!
-		rowvec vec = _probaV.row(i);
+		//RANDOM
+		/* rowvec vec = _probaV.row(i);
 		discrete_distribution<> dis(vec.begin(), vec.end());
-		//int sample = dis(gen);
 		mt19937 gen(_rd());
-		int sample = dis(gen);
+		int sample = dis(gen); */
+		rowvec vec = _probaV.row(i);
+		boost::mt19937 generator(this->_seed);
+		boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+		int sample = distribution(generator);
 		this->_V(i, sample) = 1;
 	}
 	return;
@@ -301,12 +302,16 @@ void ClusteringContext::sampleVWStock() {
 		this->_V.zeros();
 		//std::default_random_engine gen;
 		for (int i = 0; i < _Nr; i++) {
-			// random!
-			rowvec vec = _probaV.row(i);
+			//RANDOM
+			/* rowvec vec = _probaV.row(i);
 			discrete_distribution<> dis(vec.begin(), vec.end());
-			//int sample = dis(gen);
 			mt19937 gen(_rd());
-			int sample = dis(gen);
+			int sample = dis(gen); */
+
+			rowvec vec = _probaV.row(i);
+			boost::mt19937 generator(this->_seed);
+			boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+			int sample = distribution(generator);
 			this->_V(i, sample) = 1;
 			countV(i, sample) += 1;
 		}
@@ -338,6 +343,23 @@ bool ClusteringContext::verif() {
 		result = this->_distrib_objects[idistrib]->verif(_V, diag, _nbindmini);
 		if (result == false) {
 			return false;
+		}
+	}
+	return result;
+}
+
+vector<vector<int>> ClusteringContext::verification() {
+	vector<vector<int>> result;
+	for (int idistrib = 0; idistrib < this->_number_distrib; idistrib++) {
+		mat Weye(_Jc.at(idistrib),_Jc.at(idistrib));
+		Weye.eye();
+		int verifD = this->_distrib_objects[idistrib]->verification(_V, Weye, _nbindmini);
+
+		if (!(verifD==-1)) {			
+			vector<int> newline(2);
+			newline.at(0) = idistrib;
+			newline.at(1) = verifD; 
+			result.push_back(newline);
 		}
 	}
 	return result;

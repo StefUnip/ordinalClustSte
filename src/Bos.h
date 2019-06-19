@@ -8,15 +8,20 @@
 //#include <limits>
 //#include <cmath>
 
+// [[Rcpp::depends(BH)]]
+#include <boost/random.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
 
 extern const double inf;
 using namespace std;
+using namespace arma;
 
 class Bos :
 	public Distribution
 {
 public:
-	Bos(mat xsep, int kr, int kc, int m, int nbSEM, unsigned int iterordiEM);
+	Bos(mat xsep, int kr, int kc, int m, int nbSEM, int seed, unsigned int iterordiEM);
 	Bos();
 	~Bos();
 	void missingValuesInit();

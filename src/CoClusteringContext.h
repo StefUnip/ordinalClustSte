@@ -13,6 +13,11 @@
 #include <vector>
 #include <numeric>
 
+// [[Rcpp::depends(BH)]]
+#include <boost/random.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
+
 
 using namespace arma;
 using namespace std;
@@ -20,13 +25,16 @@ class CoClusteringContext
 {
 public:
 	CoClusteringContext(arma::mat x, std::vector< arma::urowvec > dlist, int kr, std::vector< int > kc,
-		std::string init, int nbSEM, int nbSEMburn, int nbindmini, std::vector< int > m);
+		std::string init, int nbSEM, int nbSEMburn, int nbindmini, std::vector< int > m, 
+		vector<double> percentRandomB, int seed);
 	CoClusteringContext();
 	~CoClusteringContext();
 	void missingValuesInit();
 	bool initialization();
 	void Mstep();
 	void MstepVW();
+	void noColDegenerancy(vector<vector<int>> distrib_col, int iter);
+	void noRowDegenerancy(vector<vector<int>> distrib_col, int iter);
 	void SEstep();
 	void SEstepRow();
 	void SEstepCol();
@@ -36,6 +44,7 @@ public:
 	void sampleVWStock();
 	void imputeMissingData();
 	bool verif();
+	vector<vector<int>> verification();
 	void fillParameters(int iteration);
 	void fillLabels(int iteration);
 	void getBurnedParameters();
@@ -88,12 +97,18 @@ protected:
 
 	double _icl;
 
+	int _seed;
+
+	vector<double> _percentRandomB;
+
 	//utils
 
 	rowvec getMeans(mat VorW);
 	double logsum(rowvec logx);
 	mat kmeansi();
 	double getDistance(vec &a, vec &b);
+	
+	
 
 };
 

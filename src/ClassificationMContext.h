@@ -13,12 +13,14 @@
 #include <vector>
 #include <numeric>
 
+
 class ClassificationMContext
 {
 public:
 	ClassificationMContext(arma::mat x, arma::vec y, std::vector< arma::urowvec > dlist, int kr, 
 		std::string init, int nbSEM, 
-		int nbSEMburn, int nbindmini, std::vector< int > m);
+		int nbSEMburn, int nbindmini, 
+		std::vector< int > m, int seed);
 	ClassificationMContext();
 	~ClassificationMContext();
 	void missingValuesInit(); 
@@ -66,6 +68,7 @@ protected:
 	random_device _rd;
 
 	double _icl;
+	int _seed;
 
 	// Utils
 	rowvec getMeans(mat VorW);

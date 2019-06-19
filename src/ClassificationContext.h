@@ -15,12 +15,18 @@
 #include <vector>
 #include <numeric>
 
+// [[Rcpp::depends(BH)]]
+#include <boost/random.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
+using namespace std;
+
 class ClassificationContext
 {
 public:
 	ClassificationContext(arma::mat x, arma::vec y, std::vector< arma::urowvec > dlist,
 		int kr, std::vector< int > kc, std::string init, int nbSEM, int nbSEMburn, 
-		int nbindmini, std::vector< int > m);
+		int nbindmini, std::vector< int > m, std::vector<double> percentRandomB, int seed);
 	ClassificationContext();
 	~ClassificationContext();
 	void missingValuesInit(); 
@@ -32,6 +38,8 @@ public:
 	void sampleVWStock();
 	void imputeMissingData();
 	bool verif();
+	vector<vector<int>> verification();
+	void noColDegenerancy(vector<vector<int>> distrib_col, int iter);
 	void fillParameters(int iteration);
 	void fillLabels(int iteration);
 	void getBurnedParameters();
@@ -82,6 +90,8 @@ protected:
 	random_device _rd;
 
 	double _icl;
+	int _seed;
+	vector<double> _percentRandomB;
 
 	// Utils
 	rowvec getMeans(mat VorW);

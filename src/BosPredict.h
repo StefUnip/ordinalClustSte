@@ -3,6 +3,11 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+// [[Rcpp::depends(BH)]]
+#include <boost/random.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
+
 using namespace std;
 using namespace arma;
 using namespace Rcpp;
@@ -10,7 +15,7 @@ class BosPredict
 {
 
 public:
-	BosPredict(int kr, int kc, int m, mat pis, mat mus);
+	BosPredict(int kr, int kc, int m, mat pis, mat mus, int seed);
 	BosPredict();
 	~BosPredict();
 	mat missingValuesInit(mat& x);
@@ -26,5 +31,6 @@ protected:
 	vector<vector<int>> _miss;
 	cube _tab_pejs;
 	random_device _rd; // to sample distributions
+	int _seed;
 };
 

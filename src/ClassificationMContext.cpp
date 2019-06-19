@@ -2,9 +2,9 @@
 
 ClassificationMContext::ClassificationMContext(arma::mat x, arma::vec y, std::vector< arma::urowvec > dlist,
 	int kr, std::string init, int nbSEM, int nbSEMburn, 
-	int nbindmini, std::vector< int > m)
+	int nbindmini, std::vector< int > m, int seed)
 {
-
+	this->_seed = seed;
 	// attributes that are directly instanciated
 	this->_x = x;
 	this->_Nr = _x.n_rows;
@@ -39,7 +39,8 @@ ClassificationMContext::ClassificationMContext(arma::mat x, arma::vec y, std::ve
 		
 		if (distrib_name == "Bos") {
 			unsigned int iterordiEM = 10;
-			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _dlist.at(idistrib).size(), _m[im], this->_nbSEM, iterordiEM));
+			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _dlist.at(idistrib).size(), _m[im], this->_nbSEM, 
+			iterordiEM, this->_seed));
 			im++;
 		}
 		tmp_Jc[idistrib] = _dlist.at(idistrib).size();

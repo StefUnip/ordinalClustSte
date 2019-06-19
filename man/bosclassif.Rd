@@ -3,14 +3,15 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 %%  ~~function to do ... ~~
-bosclassif
+Function to perform a classification
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 This function performs a classification on a dataset with features of the ordinal kind, and a label variable of the integer type (1,2,...,kr). The classification function proposes two classification models. The first one, (chosen by the argument kc=0), is a multivariate BOS model assuming that, conditionally on the class of the observations, the feature are independent. The second model is a parsimonious version of the first model. Parcimony is introduced by grouping the features into clusters (as in co-clustering) and assuming that the features of a cluster have a common distribution. If the data contains ordinal features with D different numbers of levels, the data is going to be seen as D matrices of ordinal data.
 }
 \usage{
-bosclassif(x, y, idx_list=c(0), kr, kc=0, init, nbSEM, nbSEMburn, nbindmini, m=0) 
+bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn, 
+          nbindmini, m=0, percentRandomB=0) 
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -52,7 +53,10 @@ bosclassif(x, y, idx_list=c(0), kr, kc=0, init, nbSEM, nbSEMburn, nbindmini, m=0
   }
   \item{init}{
   %%     ~~Describe \code{init} here~~
-  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans" or "random".
+  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans", "random" or "randomBurnin".
+  }
+  \item{percentRandomB}{
+  Vector of length 1. Indicates the percentage of resampling when init is equal to "randomBurnin".
   }
 }
 %%\details{

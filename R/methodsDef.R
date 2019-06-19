@@ -1,3 +1,4 @@
+### PREDICTION ####
 methods::setMethod(
   f="predict",
   signature = "ResultClassifOrdinal",
@@ -7,15 +8,14 @@ methods::setMethod(
   }
 )
 
-
+### PLOTTING ###
 methods::setGeneric("plot",function(object){standardGeneric("plot")}) 
 
 methods::setMethod(
   f="plot",
   signature = c("ResultClassifOrdinal"),
   definition = function(object) {
-    res <- bosplot(object)
-    return(res)
+    bosplot(object)
   }
 )
 
@@ -23,8 +23,7 @@ methods::setMethod(
   f="plot",
   signature = c("ResultCoclustOrdinal"),
   definition = function(object) {
-    res <- bosplot(object)
-    return(res)
+    bosplot(object)
   }
 )
 
@@ -32,7 +31,35 @@ methods::setMethod(
   f="plot",
   signature = c("ResultClustOrdinal"),
   definition = function(object) {
-    res <- bosplot(object)
-    return(res)
+    bosplot(object)
   }
 )
+
+### summaryING ###
+methods::setGeneric("summary",function(object){standardGeneric("summary")}) 
+
+methods::setMethod(
+  f="summary",
+  signature = c("ResultClassifOrdinal"),
+  definition = function(object) {
+    bossummary(object)
+  }
+)
+
+methods::setMethod(
+  f="summary",
+  signature = c("ResultCoclustOrdinal"),
+  definition = function(object) {
+    bossummary(object)
+  }
+)
+
+methods::setMethod(
+  f="summary",
+  signature = c("ResultClustOrdinal"),
+  definition = function(object) {
+    bossummary(object)
+  }
+)
+
+

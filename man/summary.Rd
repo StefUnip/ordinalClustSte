@@ -1,12 +1,12 @@
-\name{plot}
+\name{summary}
 \docType{methods}
-\alias{plot}
-\alias{plot,ResultClassifOrdinal-method}
-\alias{plot,ResultClustOrdinal-method}
-\alias{plot,ResultCoclustOrdinal-method}
-\title{ ~~ Methods for Function \code{plot} in Package \pkg{ordinalClust} ~~}
+\alias{summary}
+\alias{summary,ResultClassifOrdinal-method}
+\alias{summary,ResultClustOrdinal-method}
+\alias{summary,ResultCoclustOrdinal-method}
+\title{ ~~ Methods for Function \code{summary} in Package \pkg{ordinalClust} ~~}
 \description{
-Plots the result of a classification, clustering or co-clustering that were performed from the following functions:
+Prints the result of a classification, clustering or co-clustering that were performed from the following functions:
 bosclassif,bosclust,boscoclust.
 }
 \section{Methods}{

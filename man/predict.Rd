@@ -1,6 +1,6 @@
-\name{predict-methods}
+\name{predict}
 \docType{methods}
-\alias{predict-methods}
+\alias{predict}
 \alias{predict,ANY-method}
 \alias{predict,ResultClassifOrdinal-method}
 \title{ ~~ Methods for Function \code{predict} in Package \pkg{stats} ~~}
@@ -17,4 +17,3 @@ Use this method with the result of the function bosclassif, and a new sample to 
 }
 }}
 \keyword{methods}
-\keyword{ ~~ other possible keyword(s) ~~ }

@@ -1,4 +1,5 @@
 predictions <- function(classif, x=matrix(0,nrow=1,ncol=1)){
-	res <- prediction(classif, x)
+	seed = get_seed()
+	res <- prediction(classif, x, seed)
 	return(res)
 }

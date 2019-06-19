@@ -36,11 +36,30 @@
 #include <vector>
 #include <numeric>
 
+// [[Rcpp::depends(BH)]]
+#include <boost/random.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
 
 
 using namespace std;
 using namespace arma;
 using namespace Rcpp;
+
+// [[Rcpp::export]]
+void testSeed(int seed){
+	boost::mt19937 generator(seed);
+	vector<double> vec(5);
+	double prob = (double)1 / 5;
+	std::fill(vec.begin(), vec.end(), prob);
+	boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+    int temp = distribution(generator);
+    //cout << " test: " << temp << endl;
+
+	int temp2 = distribution(generator);
+    //cout << " test2: " << temp2 << endl;
+    return;
+}
 
 
 
@@ -51,9 +70,9 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 	int kr, std::vector<int> kc, std::string init, int nbSEM, 
-	int nbSEMburn, int nbRepeat, int nbindmini, const std::vector<int> m)
+	int nbSEMburn, int nbRepeat, int nbindmini, const std::vector<int> m,
+	std::vector<double> percentRandomB, int seed)
 {
-    
 
 	
 	Progress p(nbSEM, true);
@@ -80,7 +99,7 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 
 	}
 
-	CoClusteringContext context(x, dlist, kr, kc, init, nbSEM, nbSEMburn, nbindmini, m);
+	CoClusteringContext context(x, dlist, kr, kc, init, nbSEM, nbSEMburn, nbindmini, m, percentRandomB, seed);
 
 	context.missingValuesInit();
 
@@ -105,26 +124,24 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 		verif = false;
 
 		
-		//cout << "rows " << endl;
 		for(int repeat=0; repeat<nbRepeat; repeat++){
 
-				//cout << "iter : " << iter << endl;
 				context.SEstepRow();
 				context.sampleV();
 				verif = context.verif();
-				int restart = 0;
+				//int restart = 0;
 
-				while (verif == false && restart < 50) {
-					context.sampleV();
-					restart++;
-
-					verif = context.verif();
-
-
-				}
-				if (!verif) {
-					S4 t("ResultCoclustOrdinal");
-					return t;
+				if(!verif){
+					if( (init != "randomBurnin") || (iter > nbSEMburn)){
+						S4 t("ResultCoclustOrdinal");
+						return t;
+					}
+					else{
+						vector<vector<int>> res = context.verification();
+						context.noRowDegenerancy(res, iter);
+						context.MstepVW();
+						verif = context.verif();
+					}
 				}
 				else{
 					context.MstepVW();
@@ -132,54 +149,30 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 			
 		}
 
-		//cout << "cols " << endl;
 		for(int repeat=0; repeat<nbRepeat; repeat++){
 			
 				context.SEstepCol();
 				context.sampleW();
 				verif = context.verif();
-				int restart = 0;
+				//int restart = 0;
 
-				while (verif == false && restart < 50) {
-					
-					context.sampleW();
-					restart++;
-
-					verif = context.verif();
-				}
-				if (!verif) {
-					S4 t("ResultCoclustOrdinal");
-					return t;
+				if(!verif){
+					if( (init != "randomBurnin") || (iter > nbSEMburn)){
+						S4 t("ResultCoclustOrdinal");
+						return t;
+					}
+					else{
+						vector<vector<int>> res = context.verification();
+						context.noColDegenerancy(res, iter);
+						context.MstepVW();
+						verif = context.verif();
+					}
 				}
 				else{
 					context.MstepVW();
 				}
 			
-
 		}
-		/*
-
-			// test
-			context.SEstep();
-			context.sampleVW();
-			verif = context.verif();
-			while (verif == false && restart < 50) {
-				verif = context.verif();
-				if (!verif) {
-					context.sampleVW();
-					restart++;
-				}
-			}
-			if (!verif) {
-				S4 t("ResultCoclustOrdinal");
-				return t;
-			}
-			else{
-				context.MstepVW();
-			}
-		*/
-
-			// end test
 		
 		if (!verif) {
 			S4 t("ResultCoclustOrdinal");
@@ -211,7 +204,7 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 // [[Rcpp::export]]
 S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList, 
 	int kr, std::string init, int nbSEM, int nbSEMburn, int nbindmini, 
-	const std::vector<int> m)
+	const std::vector<int> m, std::vector<double> percentRandomB, int seed)
 {
 	Progress p(nbSEM, true);
 
@@ -235,7 +228,7 @@ S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList,
 	}
 
 
-	ClusteringContext context(x, dlist, kr, init, nbSEM, nbSEMburn, nbindmini, m);
+	ClusteringContext context(x, dlist, kr, init, nbSEM, nbSEMburn, nbindmini, m, percentRandomB, seed);
 
 	context.missingValuesInit();
 
@@ -255,7 +248,6 @@ S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList,
 		return t;
 	}
 	
-	//context.imputeMissingData();
 
 	context.fillParameters(0);
 	context.fillLabels(0);
@@ -263,27 +255,43 @@ S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList,
 	for (int iter = 0; iter < nbSEM; iter++) {
 		p.increment();
 		verif = false;
-		int restart = 0;
+		//int restart = 0;
 		context.SEstepRow();
 		context.sampleVW();
 		verif = context.verif();
-		while (verif == false && restart < 25) {
+		/* while (verif == false && restart < 25) {
 			verif = context.verif();
 			if (!verif) {
 				context.sampleVW();
 				restart++;
-				//cout << "empty blocks--restarting number " << restart << endl;
+			}
+		} */
+
+
+		
+		if(!verif){
+			if( (init != "randomBurnin") || (iter > nbSEMburn)){
+				S4 t("ResultClustOrdinal");
+				return t;
+			}
+			else{
+				vector<vector<int>> res = context.verification();
+				context.noRowDegenerancy(res, iter);
+				context.MstepVW();
+				verif = context.verif();
 			}
 		}
+		else{
+			context.MstepVW();
+		}
+
 		if (!verif) {
-			//cout << "degenerancy of algorithm" << restart << endl;
 			S4 t("ResultClustOrdinal");
 			return t;
 		}
 		else {
 			context.imputeMissingData();
-			//context.putParamsToZero();
-			context.MstepVW();
+			//context.MstepVW();
 		}
 		if(iter>0){
 			context.fillParameters(iter);
@@ -309,9 +317,9 @@ S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList,
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-S4 classif(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> myList, 
+S4 classif(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myList, 
 	int kr, std::vector<int> kc, std::string init, int nbSEM, int nbSEMburn, int nbindmini, 
-	const std::vector<int> m)
+	const std::vector<int> m, std::vector<double> percentRandomB, int seed)
 {
 
 	Progress p(nbSEM, true);
@@ -335,7 +343,7 @@ S4 classif(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> my
 
 	}
 
-	ClassificationContext context(x, y, dlist, kr, kc, init, nbSEM, nbSEMburn, nbindmini, m);
+	ClassificationContext context(x, y, dlist, kr, kc, init, nbSEM, nbSEMburn, nbindmini, m, percentRandomB, seed);
 
 
 
@@ -352,11 +360,11 @@ S4 classif(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> my
 		verif = context.verif();
 		if (!verif) {
 			restart_init++;
-			//cout << "empty blocks--restarting number " << restart_init << endl;
 		}
 	}
+
+	
 	if (!verif) {
-		//cout << "degenerancy of algorithm" << endl;
 		S4 t("ResultClassifOrdinal");
 		return t;
 	}
@@ -369,25 +377,43 @@ S4 classif(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> my
 	for (int iter = 0; iter < nbSEM; iter++) {
 		p.increment();
 		verif = false;
-		int restart = 0;
+		//int restart = 0;
 
 		context.SEstep();
 		context.sampleVW();
 
 		verif = context.verif();
 
-		//cout << "iter : " << iter << endl;
-		while (verif == false && restart < 25) {
-			//cout << "restart : " << restart << endl;
+		/* while (verif == false && restart < 25) {
 			verif = context.verif();
 			if (!verif) {
 				context.sampleVW();
 				restart++;
-				//cout << "empty blocks--restarting number " << restart << endl;
 			}
+		} */
+
+		if(!verif){
+			int restart = 0;
+			while(!verif && restart<10){
+				//cout << "restart" << restart << endl;
+				if( (init != "randomBurnin") || (iter > nbSEMburn)){
+					S4 t("ResultClassifOrdinal");
+					return t;
+				}
+				else{
+					vector<vector<int>> res = context.verification();
+					context.noColDegenerancy(res, iter);
+					//context.MstepVW();
+					verif = context.verif();
+				}
+				restart++;
+			}
+			
+		}
+		else{
+			context.MstepVW();
 		}
 		if (!verif) {
-			//cout << "degenerancy of algorithm" << restart << endl;
 			S4 t("ResultClassifOrdinal");
 			return t;
 		}
@@ -405,7 +431,7 @@ S4 classif(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> my
 
 	
 	context.getBurnedParameters();
-	context.SEstep(); //
+	context.SEstep(); 
 	context.sampleVWStock();
 
 	//context.printResults();
@@ -421,7 +447,7 @@ S4 classif(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> my
 // [[Rcpp::export]]
 S4 classifM(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> myList, 
 	int kr,  std::string init, int nbSEM, 
-	int nbSEMburn, int nbindmini, const std::vector<int> m)
+	int nbSEMburn, int nbindmini, const std::vector<int> m, int seed)
 {
 		Progress p(nbSEM, true);
 		
@@ -447,7 +473,7 @@ S4 classifM(NumericMatrix xMat, NumericVector  yVec, std::vector<unsigned int> m
 		}
 
 
-		ClassificationMContext context(x, y, dlist, kr, init, nbSEM, nbSEMburn, nbindmini, m);
+		ClassificationMContext context(x, y, dlist, kr, init, nbSEM, nbSEMburn, nbindmini, m, seed);
 
 		p.increment();
 
@@ -510,7 +536,7 @@ double logsum(rowvec logx);
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-S4 prediction(S4 classif, NumericMatrix xMat_topredict)
+S4 prediction(S4 classif, NumericMatrix xMat_topredict, int seed)
 {
 
 	arma::mat x_topredict(xMat_topredict.begin(), xMat_topredict.nrow(), xMat_topredict.ncol(), false ) ;
@@ -566,7 +592,7 @@ S4 prediction(S4 classif, NumericMatrix xMat_topredict)
 			mat tmp_x = x_topredict.cols(indexes);
 			mat pis = paramsIdistrib["pis"];
 			mat mus = paramsIdistrib["mus"];
-			BosPredict object(kr, kc(idistrib), m(iterm), pis, mus);
+			BosPredict object(kr, kc(idistrib), m(iterm), pis, mus, seed);
 			// for now we just initialize at random TODO: impute Missing data in a better way
 			tmp_x = object.missingValuesInit(tmp_x);
 			iterm ++;
@@ -599,15 +625,18 @@ S4 prediction(S4 classif, NumericMatrix xMat_topredict)
 		//std::default_random_engine gen;
 		for (int i = 0; i < N_topredict; i++) {
 			
-			// random!
-			rowvec vec = probaV_topredict.row(i);
-			
-			
-			discrete_distribution<> dis(vec.begin(), vec.end());
-			
+			//RANDOM
+			/* rowvec vec = probaV_topredict.row(i);			
+			discrete_distribution<> dis(vec.begin(), vec.end());			
 			random_device _rd;
 			mt19937 gen(_rd());
-			int sample = dis(gen);	
+			int sample = dis(gen); */
+			rowvec vec = probaV_topredict.row(i);
+			boost::mt19937 generator(seed);
+			boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+			int sample = distribution(generator);
+
+
 			V_topredict(i, sample) = 1;
 			countV_topredict(i, sample) += 1;
 		}

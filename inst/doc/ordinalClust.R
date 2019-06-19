@@ -1,5 +1,5 @@
 ## ------------------------------------------------------------------------
-set.seed(5)
+set.seed(1)
 
 ## ---- echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE-----------------
 library(ordinalClust)
@@ -36,25 +36,27 @@ plot1 <- ggplot(data = M, aes(x = M,fill=factor(M))) +
 plot1
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
+#  set.seed(1)
 #  
 #  library(ordinalClust)
 #  data("dataqol")
-#  set.seed(5)
 #  
 #  # loading the ordinal data
 #  M <- as.matrix(dataqol[,2:29])
 #  
 #  m = 4
 #  
-#  krow = 4
+#  krow = 3
 #  
-#  nbSEM=50
-#  nbSEMburn=40
+#  nbSEM=100
+#  nbSEMburn=90
 #  nbindmini=2
-#  init = "random"
+#  init = "randomBurnin"
+#  percentRandomB = c(30)
 #  
 #  object <- bosclust(x=M,kr=krow, m=m, nbSEM=nbSEM,
-#      nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
+#      nbSEMburn=nbSEMburn, nbindmini=nbindmini,
+#      percentRandomB=percentRandomB, init=init)
 #  
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
@@ -69,11 +71,12 @@ include_graphics("figures/clust.png")
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
 #  
+#  set.seed(1)
+#  
 #  library(ordinalClust)
 #  
 #  # loading the real dataset
 #  data("dataqol")
-#  set.seed(5)
 #  
 #  # loading the ordinal data
 #  M <- as.matrix(dataqol[,2:29])
@@ -84,18 +87,23 @@ include_graphics("figures/clust.png")
 #  
 #  
 #  # defining number of row and column clusters
-#  krow = 5
-#  kcol = 4
+#  krow = 3
+#  kcol = 3
 #  
 #  # configuration for the inference
-#  nbSEM=50
-#  nbSEMburn=40
+#  nbSEM=100
+#  nbSEMburn=90
 #  nbindmini=2
-#  init = "kmeans"
+#  init = "randomBurnin"
+#  percentRandomB = c(30, 30)
 #  
 #  # Co-clustering execution
-#  object <- boscoclust(x=M,kr=krow,kc=kcol,m=m,nbSEM=nbSEM,
-#            nbSEMburn=nbSEMburn, nbindmini=nbindmini, init=init)
+#  object <- boscoclust(x = M,kr = krow, kc = kcol, m = m,
+#                      nbSEM = nbSEM, nbSEMburn = nbSEMburn,
+#                      nbindmini = nbindmini, init = init,
+#                      percentRandomB = percentRandomB)
+#  
+#  
 #  
 
 ## ----echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE-----------------
@@ -109,12 +117,12 @@ library(knitr)    # For knitting document and include_graphics function
 include_graphics("figures/coclust.png")
 
 ## ---- echo=TRUE, message=FALSE, warning=FALSE----------------------------
+set.seed(1)
 
 library(ordinalClust)
 # loading the real dataset
 data("dataqol.classif")
 
-set.seed(5)
 
 # loading the ordinal data
 M <- as.matrix(dataqol.classif[,2:29])
@@ -125,7 +133,7 @@ y <- as.vector(dataqol.classif$death)
 
 
 # sampling datasets for training and to predict
-nb.sample <- ceiling(nrow(M)*2/3)
+nb.sample <- ceiling(nrow(M)*7/10)
 sample.train <- sample(1:nrow(M), nb.sample, replace=FALSE)
 
 M.train <- M[sample.train,]
@@ -140,10 +148,11 @@ y.validation <- y[-sample.train]
 kr <- 2
 
 # configuration for SEM algorithm
-nbSEM=50
-nbSEMburn=40
+nbSEM=100
+nbSEMburn=75
 nbindmini=2
-init="kmeans"
+init="randomBurnin"
+percentRandomB = c(20)
 
 
 # different kc to test with cross-validation
@@ -152,23 +161,25 @@ m <- 4
 
 
 # matrix which contains the predictions for all different kc
-predictions <- matrix(0,nrow=length(kcol),ncol=nrow(M.validation))
+preds <- matrix(0,nrow=length(kcol),ncol=nrow(M.validation))
 
 for(kc in 1:length(kcol)){
-  res <- bosclassif(x=M.train, y=y.train, idx_list=c(0),
-                    kr=kr, kc=kcol[kc], init=init, m=m, nbSEM=nbSEM, 
-                    nbSEMburn=nbSEMburn, nbindmini=nbindmini)
+  res <- bosclassif(x=M.train, y=y.train, 
+                    kr=kr, kc=kcol[kc], m=m, 
+                    nbSEM=nbSEM, nbSEMburn=nbSEMburn, 
+                    nbindmini=nbindmini, init=init, percentRandomB=percentRandomB)
   new.prediction <- predict(res, M.validation)
-  predictions[kc,] <- new.prediction@zr_topredict
+  preds[kc,] <- new.prediction@zr_topredict
 }
 
-predictions = as.data.frame(predictions)
+preds = as.data.frame(preds)
 row.names <- c()
 for(kc in kcol){
   name= paste0("kc=",kc)
   row.names <- c(row.names,name)
 }
-rownames(predictions)=row.names
+rownames(preds)=row.names
+
 
 ## ---- echo=TRUE, message=FALSE, warning=FALSE----------------------------
 
@@ -176,37 +187,28 @@ library(caret)
 
 actual <- y.validation -1
 
-
-precisions <- rep(0,length(kcol))
-recalls <- rep(0,length(kcol))
-sensitivities <- rep(0,length(kcol))
 specificities <- rep(0,length(kcol))
+sensitivities <- rep(0,length(kcol))
 
 for(i in 1:length(kcol)){
-  prediction <- unlist(as.vector(predictions[i,])) -1
-  conf_matrix<-table(prediction,actual)
-  precisions[i] <- precision(conf_matrix)
-  recalls[i] <- recall(conf_matrix)
-  sensitivities[i] <- sensitivity(conf_matrix)
+  prediction <- unlist(as.vector(preds[i,])) -1
+  u <- union(prediction, actual)
+  conf_matrix<-table(factor(prediction, u),factor(actual, u))
+  sensitivities[i] <- recall(conf_matrix)
   specificities[i] <- specificity(conf_matrix)
 }
 
-
-## ---- echo=TRUE, message=FALSE, warning=FALSE----------------------------
-
-precisions
-recalls
 sensitivities
 specificities
 
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
+#  set.seed(1)
 #  
 #  library(ordinalClust)
 #  
 #  # loading the real dataset
 #  data("dataqol")
-#  set.seed(5)
 #  
 #  # loading the ordinal data
 #  M <- as.matrix(dataqol[,2:31])
@@ -224,9 +226,9 @@ specificities
 #  nbSEM=50
 #  nbSEMburn=40
 #  nbindmini=2
-#  init='kmeans'
+#  init='random'
 #  
-#  d.list <- c(0,28)
+#  d.list <- c(1,29)
 #  
 #  # Co-clustering execution
 #  object <- boscoclust(x=M,kr=krow,kc=kcol,m=m, idx_list=d.list,

@@ -10,7 +10,7 @@ bosplot1 <- function(object){
 
 
 	
-	if(object@name == "Classif"){
+	if(object@name == "ClassifM"){
 		D <- length(m)
 		par(mfrow=c(1,D))
 		for(id in 1:D){
@@ -28,7 +28,7 @@ bosplot1 <- function(object){
 			}
 		}
 	}
-	if(object@name == "ClassifM"){
+	if(object@name == "Classif"){
 		D <- length(m)
 		par(mfrow=c(1,D))
 		for(id in 1:D){
@@ -125,7 +125,7 @@ bosplot <- function(object){
 
 
 	
-	if(object@name == "Classif"){
+	if(object@name == "ClassifM"){
 		D <- length(m)
 		par(mfrow=c(1,D))
 		for(id in 1:D){
@@ -143,7 +143,7 @@ bosplot <- function(object){
 			}
 		}
 	}
-	if(object@name == "ClassifM"){
+	if(object@name == "Classif"){
 		D <- length(m)
 		par(mfrow=c(1,D))
 		for(id in 1:D){

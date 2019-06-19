@@ -19,7 +19,7 @@ checkParamsClassif <- function(x, init, nbSEM, nbSEMburn){
 
 ######################## UTILS ######################
 generical <- function(x, init, nbSEM, nbSEMburn){
-	if(!any(init=="kmeans") & !any(init=="random") & !any(init=="provided")) stop('init argument should be "kmeans", "random" or "provided".')
+	if(!any(init=="kmeans") & !any(init=="random") & !any(init=="randomBurnin")) stop('init argument should be "kmeans", "random" or "randomBurnin".')
 	if(nbSEM<=nbSEMburn) stop('nbSEMburn must be inferior to nbSEM.')
 }
 

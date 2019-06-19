@@ -1,9 +1,13 @@
 #include "ClassificationContext.h"
 
-ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vector< arma::urowvec > dlist,
-	int kr, std::vector< int > kc, std::string init, int nbSEM, int nbSEMburn, int nbindmini, std::vector< int > m)
+ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, 
+											std::vector< arma::urowvec > dlist, int kr, 
+											std::vector< int > kc, std::string init, int nbSEM, 
+											int nbSEMburn, int nbindmini, std::vector< int > m, 
+											std::vector<double> percentRandomB, int seed)
 {
 
+	this->_seed = seed;
 	// attributes that are directly instanciated
 	this->_x = x;
 	this->_Nr = _x.n_rows;
@@ -19,6 +23,9 @@ ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vect
 
 	//attributes to construct
 	this->_number_distrib = _m.size();
+
+	// for complex init
+	this->_percentRandomB = percentRandomB;
 
 	// attributes regarding columns
 	vector<int> tmp_Jc(_number_distrib);
@@ -48,7 +55,8 @@ ClassificationContext::ClassificationContext(arma::mat x, arma::vec y, std::vect
 		
 		if (distrib_name == "Bos") {
 			unsigned int iterordiEM = 10;
-			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _kc.at(idistrib), _m[im], this->_nbSEM, iterordiEM));
+			tmp_distrib_objets.push_back(new Bos(xsep, _kr, _kc.at(idistrib), _m[im], this->_nbSEM, 
+			iterordiEM, this->_seed));
 			im++;
 		}
 		tmp_Jc[idistrib] = _dlist.at(idistrib).size();
@@ -136,41 +144,30 @@ ClassificationContext::~ClassificationContext()
 }
 
 void ClassificationContext::initialization() {
-	//cout << "=============== initialization ===============" << endl;
-	//arma_rng::set_seed_random();
-	if (_init == "random") {
+	if (_init == "random" || _init == "randomBurnin") {
 		
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++)
 		{
+			// RANDOM
+			/* vector<double> vec(_kc.at(idistrib));
+			double prob = (double)1 / _kc.at(idistrib);
+			std::fill(vec.begin(), vec.end(), prob);
+			discrete_distribution<> d(vec.begin(), vec.end()); */
+			
+			boost::mt19937 generator(this->_seed);
 			vector<double> vec(_kc.at(idistrib));
 			double prob = (double)1 / _kc.at(idistrib);
 			std::fill(vec.begin(), vec.end(), prob);
-			discrete_distribution<> d(vec.begin(), vec.end());
+			boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+
 			for (int i = 0; i<_Jc.at(idistrib); ++i) {
 				// random!
-				mt19937 gen(_rd());
-				int sample = d(gen);
-				//int sample = randi(1, distr_param(0, (_kc[idistrib] - 1)))(0);
-				//cout << "random  : " << sample << endl;
+				int sample = distribution(generator);
 				this->_W.at(idistrib)(i, sample) = 1;
 			}
 
-			// has to change because of sparsepoisson (does not have mstep)
-			/*for (int k = 0; k < _kr; k++) {
-				for (int h = 0; h < _kc[idistrib]; h++) {
-					uvec rowind = find(this->_V.col(k) == 1);
-					uvec colind = find(this->_W[idistrib].col(h) == 1);
-					this->_distrib_objects[idistrib]->Mstep(rowind, colind, k, h, true);
-				}
-			}*/
 			// replaced by:
 			this->_distrib_objects[idistrib]->MstepVW(_V, _W.at(idistrib), false);
-			
-			
-
-			
-
-
 			// updating rho 
 			this->_rho.at(idistrib) = this->getMeans(this->_W.at(idistrib));
 		}
@@ -179,16 +176,6 @@ void ClassificationContext::initialization() {
 	if (_init == "kmeans") {
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 			this->_W.at(idistrib) = this->_distrib_objects[idistrib]->colkmeans();
-			//updating distribution parameters;
-			// has to change because of sparsepoisson (does not have mstep)
-			/*for (int k = 0; k < _kr; k++) {
-				for (int h = 0; h < _kc[idistrib]; h++) {
-					uvec rowind = find(this->_V.col(k) == 1);
-					uvec colind = find(this->_W[idistrib].col(h) == 1);
-					this->_distrib_objects[idistrib]->Mstep(rowind, colind, k, h, true);
-				}
-			}*/
-			//replaced by 
 			this->_distrib_objects[idistrib]->MstepVW(_V, _W.at(idistrib), false);
 			// updating rho 
 			this->_rho.at(idistrib) = this->getMeans(this->_W.at(idistrib));
@@ -300,12 +287,16 @@ void ClassificationContext::sampleVW() {
 	for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		this->_W.at(idistrib).zeros();
 		for (int d = 0; d < _Jc.at(idistrib); d++) {
-			//random!
-			rowvec vec = _probaW.at(idistrib).row(d);
-			//vec.print();
+			//RANDOM
+			/* rowvec vec = _probaW.at(idistrib).row(d);
 			discrete_distribution<> dis(vec.begin(), vec.end());
-			mt19937 gen(_rd());
-			int sample = dis(gen);
+			mt19937 gen(_rd()); */
+
+			boost::mt19937 generator(this->_seed);
+			rowvec vec = _probaW.at(idistrib).row(d);
+			boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+			int sample = distribution(generator);
+
 			this->_W.at(idistrib)(d, sample) = 1;
 		}
 	}
@@ -328,12 +319,17 @@ void ClassificationContext::sampleVWStock() {
 		for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 			this->_W.at(idistrib).zeros();
 			for (int d = 0; d < _Jc.at(idistrib); d++) {
-				//random!
-				rowvec vec = _probaW.at(idistrib).row(d);
-				//vec.print();
+				//RANDOM
+				/* rowvec vec = _probaW.at(idistrib).row(d);
 				discrete_distribution<> dis(vec.begin(), vec.end());
 				mt19937 gen(_rd());
-				int sample = dis(gen);
+				int sample = dis(gen); */
+
+				boost::mt19937 generator(this->_seed);
+				rowvec vec = _probaW.at(idistrib).row(d);
+				boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
+				int sample = distribution(generator);
+
 				this->_W.at(idistrib)(d, sample) = 1;
 				countW.at(idistrib)(d, sample) += 1;
 
@@ -368,6 +364,56 @@ bool ClassificationContext::verif() {
 		}
 	}
 	return result;
+}
+
+vector<vector<int>> ClassificationContext::verification() {
+	vector<vector<int>> result;
+	for (int idistrib = 0; idistrib < this->_number_distrib; idistrib++) {
+		int verifD = this->_distrib_objects[idistrib]->verification(_V, _W.at(idistrib), _nbindmini);
+
+		if (!(verifD==-1)) {			
+			vector<int> newline(2);
+			newline.at(0) = idistrib;
+			newline.at(1) = verifD; 
+			result.push_back(newline);
+		}
+		
+	}
+	return result;
+}
+
+void ClassificationContext::noColDegenerancy(vector<vector<int>> distrib_col, int iter){
+	double percent = _percentRandomB[0]/100;
+
+	for(int nb_degen = 0; nb_degen<distrib_col.size(); nb_degen++){
+		int idistrib = distrib_col.at(nb_degen)[0];
+		int VorW = distrib_col.at(nb_degen)[1];
+
+		if(!(VorW<0)){
+			int nbToSample = ceil(percent*_Jc[idistrib]);
+			// RANDOM
+			/* std::random_device rdtest;     // only used once to initialise (seed) engine
+			std::mt19937 rng(rdtest());    // random-number engine used (Mersenne-Twister in this case)
+			std::uniform_int_distribution<int> uniW(0,(int)(_Jc[idistrib]-1)); // guaranteed unbiased
+			std::uniform_int_distribution<int> unikc(0,(int)(_kc[idistrib]-1)); */
+			boost::mt19937 generator(VorW+iter);
+			boost::random::uniform_int_distribution<int> uniW(0,(int)(_Jc[idistrib]-1)); 
+			boost::random::uniform_int_distribution<int> unikc(0,(int)(_kc[idistrib]-1));
+			for(int i = 0; i<nbToSample; i++){
+				int column = uniW(generator);
+				//cout << "column : " << column << endl;
+				rowvec newSample(_kc[idistrib]);
+				newSample.zeros();
+				(this->_W[idistrib]).row(column) = newSample;
+
+				int cluster = unikc(generator);
+				this->_W[idistrib](column, cluster) = 1;
+
+			}
+		}
+
+	}
+	
 }
 
 void ClassificationContext::fillParameters(int iteration) {

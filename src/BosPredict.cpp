@@ -3,8 +3,10 @@
 
 //const double inf = std::numeric_limits<double>::infinity();
 
-BosPredict::BosPredict(int kr, int kc, int m, mat pis, mat mus)
+BosPredict::BosPredict(int kr, int kc, int m, mat pis, mat mus, int seed)
 {
+
+	this->_seed = seed;
 	//this->_name = "Bos";
 	this->_m = m;
 	this->_kr = kr;
@@ -72,12 +74,22 @@ mat BosPredict::missingValuesInit(mat& x){
 	}
 	this->_miss = miss_tmp;
 	for (int imiss = 0; imiss < _miss.size(); imiss++) {
-		mt19937 gen(_rd());
+		
+		// RANDOM
+		/* mt19937 gen(_rd());
 		double eqprob = (double)1 / _m;
 		vec vecprob(_m, fill::ones);
 		vecprob = vecprob*eqprob;
 		discrete_distribution<> d(vecprob.begin(), vecprob.end()); // maybe a problem?
-		int sample = d(gen);
+		int sample = d(gen); */
+
+		boost::mt19937 generator(this->_seed);
+		double eqprob = (double)1 / _m;
+		vec vecprob(_m, fill::ones);
+		vecprob = vecprob*eqprob;
+		boost::random::discrete_distribution<int> distribution (vecprob.begin(),vecprob.end());
+		int sample = distribution(generator);
+		
 		x(_miss.at(imiss)[0], _miss.at(imiss)[1]) = sample + 1;
 	}
 	
