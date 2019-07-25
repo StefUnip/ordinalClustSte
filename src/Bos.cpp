@@ -14,15 +14,15 @@ Bos::Bos(mat xsep, int kr, int kc, int m, int nbSEM, int seed, unsigned int iter
 	
 	// the tmp parameters, that change at each iteration
 	this->_pis = ones(_kr, _kc)*0.5;
-	this->_mus = conv_to<umat>::from(ones(_kr, _kc));
+	this->_mus = arma::conv_to<umat>::from(ones(_kr, _kc));
 
 	// the stocked parameters for each iteration
 	this->_allpis = ones(_kr, _kc, _nbSEM)*0.5;
-	this->_allmus = conv_to<ucube>::from(ones(_kr, _kc, _nbSEM));
+	this->_allmus = arma::conv_to<ucube>::from(ones(_kr, _kc, _nbSEM));
 
 	// the resulting parameters
 	this->_respis = ones(_kr, _kc)*0.5;
-	this->_resmus = conv_to<umat>::from(ones(_kr, _kc));
+	this->_resmus = arma::conv_to<umat>::from(ones(_kr, _kc));
 	
 	this->_tab_pejs = this->gettabpej();
 
@@ -248,7 +248,7 @@ void Bos::Mstep(arma::uvec rowind, arma::uvec colind, int k, int h, bool init)
 		}
 	}
 
-	colvec datablock_kh = conv_to<colvec>::from(this->getDatablockkh(rowind, colind));
+	colvec datablock_kh = arma::conv_to<colvec>::from(this->getDatablockkh(rowind, colind));
 	//datablock_kh.print();
 	Mupi mupi_kh = ordiemCpp(datablock_kh, tabmu0, tabp0, 1, this->_iterordiEM);
 	/*cout << "mu = " << mupi_kh._mu << endl;
@@ -606,8 +606,11 @@ double Bos::computeICL(int i, int d, int k, int h) {
 	}
 	cube cubeProbs = this->getCubeProbs();
 	double accum = cubeProbs(k, h, _xsep(i, d) - 1);
-	result += log(accum);
-
+	double toadd = log(accum);
+	if(isnan(toadd)) 
+		toadd= log(abs(accum));
+	result += toadd;
+	
 	return(result);
 }
 
@@ -717,7 +720,7 @@ Mupi Bos::ordiemCpp(
 
 					arma::rowvec pallxz1i = pallxz1.row(i);
 					arma::mat sub_mat = matsumwhereisi * pallxz1i;
-					pxz1.submat(whereisi, all_cols_pxz1) = sub_mat; // maybe a problem here
+					pxz1.submat(whereisi, all_cols_pxz1) = sub_mat; // 
 
 				}
 				arma::rowvec temp1(_m-1);
@@ -780,24 +783,30 @@ int Bos::unsigned_to_signed(unsigned x)
 }
 
 bool Bos::compare_vec(arma::urowvec vec1, arma::rowvec vec2) {
-	bool result = true;
-	if (vec1.size() != vec2.size()) {
-		return(false);
-	}
-	else {
-		for (unsigned int i = 0; i < vec1.size(); ++i) {
-			int signed_cast = unsigned_to_signed(vec1(i));
-			if (signed_cast != vec2(i)) {
-				result = false;
-				break;
-			}
-		}
+	bool result = false;
+	// OLD
+	//bool resold = true;
+	// if (vec1.size() != vec2.size()) {
+	// 	resold = false;
+	// }
+	// else {
+	// 	for (unsigned int i = 0; i < vec1.size(); ++i) {
+	// 		int signed_cast = unsigned_to_signed(vec1(i));
+	// 		if (signed_cast != vec2(i)) {
+	// 			resold = false;
+	// 			break;
+	// 		}
+	// 	}
+	// }
+	// END OLD
+	if( all(vec1 == vec2 ) == 1){
+		result = true;
 	}
 	return(result);
 }
 
 
-arma::umat Bos::allej(int j, int m) { // TODO . to implement
+arma::umat Bos::allej(int j, int m) { 
 	arma::umat result;
 	if (j == 1) {
 		result << 1 << m << arma::endr;
@@ -871,15 +880,15 @@ double Bos::pejp1_yjej(arma::urowvec ejp1, int yj, arma::urowvec ej, int mu, dou
 	});
 	double dmuejequal = arma::min(ejequalbis);
 
-	/*arma::urowvec ejp1bis;
-	ejp1bis = ejp1;
-	ejp1bis.for_each([mu](arma::urowvec::elem_type& val) {
-		val -= mu; val = val;
-	});*/
+
+	//conv_to<fmat>::from(A)
+	arma::rowvec ejp1bis(arma::conv_to<rowvec>::from(ejp1));
+	/* 
 	arma::rowvec ejp1bis(ejp1.n_elem);
 	for (int in = 0; in < ejp1.n_elem; in++) {
 		ejp1bis(in) = ejp1(in);
 	}
+	*/
 	ejp1bis.for_each([mu](arma::rowvec::elem_type& val) {
 		val -= mu; 
 		val = std::abs(val);
@@ -944,16 +953,15 @@ double Bos::pejp1zj1_yjej(arma::urowvec ejp1, unsigned int yj, arma::urowvec ej,
 	});
 	double dmuejequal = arma::min(ejequalbis);
 
-	/*arma::urowvec ejp1bis;
-	ejp1bis = ejp1;
-	ejp1bis.for_each([mu](arma::urowvec::elem_type& val) {
-		val -= mu; 
-		val = val;
-	});*/
+
+	/*
 	arma::rowvec ejp1bis(ejp1.n_elem);
 	for (int in = 0; in < ejp1.n_elem; in++) {
 		ejp1bis(in) = (int)ejp1(in);
 	}
+	 */
+	arma::rowvec ejp1bis(arma::conv_to<rowvec>::from(ejp1));
+
 	ejp1bis.for_each([mu](arma::rowvec::elem_type& val) {
 		val -= mu; 
 		val = std::abs(val);

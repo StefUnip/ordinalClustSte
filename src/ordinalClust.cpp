@@ -103,16 +103,22 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 
 	context.missingValuesInit();
 
-	//cout << "construction ok " << endl;
-
-	bool verif = context.initialization();
-
-	//cout << "initialization ok" << endl;
 		
+	bool verif = false;
+		
+	int restart_init = 0;
+	while (verif == false && restart_init < 15) {
+		context.initialization();
+		verif = context.verif();
+		if (!verif) {
+			restart_init++;
+		}
+	}
 	if (!verif) {
-		S4 t("ResultCoclustOrdinal");
+		S4 t("ResultClustOrdinal");
 		return t;
 	}
+	
 	
 	context.imputeMissingData();
 
@@ -139,7 +145,7 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 					else{
 						vector<vector<int>> res = context.verification();
 						context.noRowDegenerancy(res, iter);
-						context.MstepVW();
+						//context.MstepVW();
 						verif = context.verif();
 					}
 				}
@@ -147,6 +153,15 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 					context.MstepVW();
 				}
 			
+		}
+
+		if (!verif) {
+			S4 t("ResultCoclustOrdinal");
+			return t;
+		}
+		else {
+			context.MstepVW();
+			context.imputeMissingData();
 		}
 
 		for(int repeat=0; repeat<nbRepeat; repeat++){
@@ -164,7 +179,7 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 					else{
 						vector<vector<int>> res = context.verification();
 						context.noColDegenerancy(res, iter);
-						context.MstepVW();
+						//context.MstepVW();
 						verif = context.verif();
 					}
 				}
@@ -179,6 +194,7 @@ S4 coclust(NumericMatrix xMat, std::vector<unsigned int> myList,
 			return t;
 		}
 		else {
+			context.MstepVW();
 			context.imputeMissingData();
 		}
 		if(iter>0){
@@ -277,7 +293,7 @@ S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList,
 			else{
 				vector<vector<int>> res = context.verification();
 				context.noRowDegenerancy(res, iter);
-				context.MstepVW();
+				//context.MstepVW();
 				verif = context.verif();
 			}
 		}
@@ -290,8 +306,8 @@ S4 clust(NumericMatrix xMat, std::vector<unsigned int> myList,
 			return t;
 		}
 		else {
-			context.imputeMissingData();
-			//context.MstepVW();
+			context.MstepVW();
+			context.imputeMissingData();	
 		}
 		if(iter>0){
 			context.fillParameters(iter);
@@ -418,9 +434,9 @@ S4 classif(NumericMatrix xMat, NumericVector yVec, std::vector<unsigned int> myL
 			return t;
 		}
 		else {
+			context.MstepVW();
 			context.imputeMissingData();	
 			context.putParamsToZero();
-			context.MstepVW();
 		}
 
 		if(iter>0){
@@ -680,18 +696,24 @@ int unsigned_to_signed(unsigned x)
 
 
 bool compare_vec(arma::urowvec vec1, arma::rowvec vec2) {
-	bool result = true;
-	if (vec1.size() != vec2.size()) {
-		return(false);
-	}
-	else {
-		for (unsigned int i = 0; i < vec1.size(); ++i) {
-			int signed_cast = unsigned_to_signed(vec1(i));
-			if (signed_cast != vec2(i)) {
-				result = false;
-				break;
-			}
-		}
+	bool result = false;
+	// OLD
+	//bool resold = true;
+	// if (vec1.size() != vec2.size()) {
+	// 	resold = false;
+	// }
+	// else {
+	// 	for (unsigned int i = 0; i < vec1.size(); ++i) {
+	// 		int signed_cast = unsigned_to_signed(vec1(i));
+	// 		if (signed_cast != vec2(i)) {
+	// 			resold = false;
+	// 			break;
+	// 		}
+	// 	}
+	// }
+	// END OLD
+	if( all(vec1 == vec2 ) == 1){
+		result = true;
 	}
 	return(result);
 }

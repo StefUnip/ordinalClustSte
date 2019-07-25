@@ -1,5 +1,5 @@
 ## ------------------------------------------------------------------------
-set.seed(1)
+set.seed(0)
 
 ## ---- echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE-----------------
 library(ordinalClust)
@@ -36,7 +36,7 @@ plot1 <- ggplot(data = M, aes(x = M,fill=factor(M))) +
 plot1
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
-#  set.seed(1)
+#  set.seed(0)
 #  
 #  library(ordinalClust)
 #  data("dataqol")
@@ -71,7 +71,7 @@ include_graphics("figures/clust.png")
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
 #  
-#  set.seed(1)
+#  set.seed(0)
 #  
 #  library(ordinalClust)
 #  
@@ -148,11 +148,11 @@ y.validation <- y[-sample.train]
 kr <- 2
 
 # configuration for SEM algorithm
-nbSEM=100
-nbSEMburn=75
+nbSEM=200
+nbSEMburn=175
 nbindmini=2
 init="randomBurnin"
-percentRandomB = c(20)
+percentRandomB = c(50, 50)
 
 
 # different kc to test with cross-validation
@@ -168,8 +168,10 @@ for(kc in 1:length(kcol)){
                     kr=kr, kc=kcol[kc], m=m, 
                     nbSEM=nbSEM, nbSEMburn=nbSEMburn, 
                     nbindmini=nbindmini, init=init, percentRandomB=percentRandomB)
+
   new.prediction <- predict(res, M.validation)
   preds[kc,] <- new.prediction@zr_topredict
+  
 }
 
 preds = as.data.frame(preds)
@@ -203,7 +205,7 @@ specificities
 
 
 ## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
-#  set.seed(1)
+#  set.seed(0)
 #  
 #  library(ordinalClust)
 #  

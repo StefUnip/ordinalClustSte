@@ -16,7 +16,7 @@ ordinalClust is an R package that allows users to perform classification, cluste
 
 ## Installation
 ```{r}
-set.seed(1)
+set.seed(0)
 ```
 ```{r, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE }
 library(ordinalClust)
@@ -87,7 +87,7 @@ In this section, a clustering is executed with the __dataqol__ dataset. The purp
 
 ### Example code
 ```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
-set.seed(1)
+set.seed(0)
 
 library(ordinalClust)
 data("dataqol")
@@ -134,7 +134,7 @@ In this example, a co-clustering is performed with the __dataqol__ dataset. In t
 
 ```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 
-set.seed(1)
+set.seed(0)
 
 library(ordinalClust)
 
@@ -228,11 +228,11 @@ y.validation <- y[-sample.train]
 kr <- 2
 
 # configuration for SEM algorithm
-nbSEM=100
-nbSEMburn=75
+nbSEM=200
+nbSEMburn=175
 nbindmini=2
 init="randomBurnin"
-percentRandomB = c(20)
+percentRandomB = c(50, 50)
 
 
 # different kc to test with cross-validation
@@ -248,8 +248,10 @@ for(kc in 1:length(kcol)){
                     kr=kr, kc=kcol[kc], m=m, 
                     nbSEM=nbSEM, nbSEMburn=nbSEMburn, 
                     nbindmini=nbindmini, init=init, percentRandomB=percentRandomB)
+
   new.prediction <- predict(res, M.validation)
   preds[kc,] <- new.prediction@zr_topredict
+  
 }
 
 preds = as.data.frame(preds)
@@ -296,7 +298,7 @@ The package allows the user to deal with ordinal data that have different number
 In this example, co-clustering is performed with the dataset **dataqol**, by including the questions with 4 categories, and questions with 7 categories. The function **boscoclustMulti** is executed, and **it might take a few minutes**.
 
 ```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
-set.seed(1)
+set.seed(0)
 
 library(ordinalClust)
 

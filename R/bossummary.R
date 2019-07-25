@@ -16,12 +16,12 @@ bossummary <- function(object){
 
 	
 	if(object@name == "ClassifM"){
-		print("****** CLASSIFICATION RESULTS ******")
+		print("############################ CLASSIFICATION RESULTS ############################")
 		
 	}
 	if(object@name == "Classif"){
-		print("****** CLASSIFICATION RESULTS ******")
-		print("*** columns mixing proportions ***")
+		print("############################ CLASSIFICATION RESULTS ############################")
+		print("########################## Columns mixing proportions ##########################")
 		for(id in 1:D){
 			print(paste("* group", id, "*"))
 			nb.W <- length(unique(object@zc[[id]]))
@@ -37,8 +37,8 @@ bossummary <- function(object){
 		}
 	}
 	if(object@name == "Coclust"){
-		print("****** CO-CLUSTERING RESULTS ******")
-		print("*** columns mixing proportions ***")
+		print("############################ CO-CLUSTERING RESULTS #############################")
+		print("########################## Columns mixing proportions ##########################")
 		for(id in 1:D){
 			print(paste("* group", id, "*"))
 			nb.W <- length(unique(object@zc[[id]]))
@@ -54,10 +54,18 @@ bossummary <- function(object){
 		}
 	}
 	if(object@name == "Clust"){
-		print("****** CLUSTERING RESULTS ******")
+		print("############################## CLUSTERING RESULTS ##############################")
 	}
 
-	print("*** row mixing proportions ***")
+	print("############################ Rows mixing proportions ###########################")
 	print(gammas)
+
+	print("################################ BOS parameters ################################")
+	for(id in 1:D){
+		print(paste("################################### Group", id, "####################################"))
+		print(object@params[[id]])
+	}
+
+
 	
 }
