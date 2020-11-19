@@ -12,29 +12,29 @@ vignette: >
 
 ## Description
 
-ordinalClust is an R package that allows users to perform classification, clustering and co-clustering of ordinal data. Furthermore, it allows to handle different numbers of levels and missing values. The ordinal data is considered to follow a BOS distribution [@biernacki16], which is specific for this kind of data. The Latent Block Model is used for performing co-clustering [@jacques17].
+ordinalClust is an R package to perform classification, clustering and co-clustering of ordinal data. Furthermore, it can handle different numbers of levels and missing values. The ordinal data is considered to follow a BOS distribution [@biernacki16], which is specific to this kind of data. The Latent Block Model is used for performing co-clustering [@jacques17].
 
 ## Installation
 ```{r}
-set.seed(0)
+set.seed(1)
 ```
 ```{r, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE }
 library(ordinalClust)
 ```
 
 ## Datasets
-The package contains real datasets created from [@Anota17]. They concerns quality of life questionnaires for patient affected by breast cancer.
+The package contains real datasets created from [@Anota17]. They relate to quality of life questionnaires for patients affected by breast cancer.
 
-* __dataqol__ is a data.frame with 121 lines such that each line represents a patient and the columns are information about the patient:
+* __dataqol__ is a dataframe with 121 lines such that each line represents a patient and the columns contain information about the patient:
     + Id: patient Id
-    + q1-q28: responses to 28 questions with number of categories equals to 4
-    + q29-q30: responses to 2 questions with number of categories equals to 7
+    + q1-q28: responses to 28 questions with the number of levels equal to 4
+    + q29-q30: responses to 2 questions with the number of levels equal to 7
 
-* __dataqol.classif__ is a data.frame with 40 lines such that a line represents a patient, and the columns are information about the patient:
+* __dataqol.classif__ is a dataframe with 40 lines such that a line represents a patient and the columns contain information about the patient:
     + Id: patient Id
-    + q1-q28: responses to 28 questions with number of categories equals to 4
-    + q29-q30: responses to 2 questions with number of categories equals to 7
-    + death: if the patient deceased (2) or not (1).
+    + q1-q28: responses to 28 questions with the number of levels equal to 4
+    + q29-q30: responses to 2 questions with the number of levels equal to 7
+    + death: if the patient survived (1) or not (2).
 
 ## Univariate Ordinal Data Simulation
 
@@ -42,7 +42,7 @@ To simulate a sample of ordinal data following the BOS distribution, the functio
 
 ### Basic example code
 
-This snippet creates a sample of ordinal data with 7 categories, that follows a BOS distribution parametrized by mu=5 and pi=0.5:
+This snippet of code creates a sample of ordinal data with 7 levels that follows a BOS distribution parameterized by mu=5 and pi=0.5:
 ```{r}
 m=7
 nr=10000
@@ -81,9 +81,9 @@ plot1 <- ggplot(data = M, aes(x = M,fill=factor(M))) +
 plot1
 ```
 
-## Perform clustering
+## Performing clustering
 
-In this section, a clustering is executed with the __dataqol__ dataset. The purpose of performing a clustering is to highlight a structure through the matrix rows.
+In this section, clustering is executed using the __dataqol__ dataset. The purpose of performing clustering is to highlight the structure through the matrix rows.
 
 ### Example code
 ```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
@@ -126,11 +126,11 @@ include_graphics("figures/clust.png")
 ```
 
 
-## Perform co-clustering
+## Performing co-clustering
 
 ### Example code
 
-In this example, a co-clustering is performed with the __dataqol__ dataset. In this case, the interest of co-clustering is to detect an internal struture throughout the rows and the columns of the data.
+In this example, co-clustering is performed using the __dataqol__ dataset. In this case, the interest in performing co-clustering is to detect an internal structure throughout the rows and columns of the data.
 
 ```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 
@@ -172,7 +172,7 @@ object <- boscoclust(x = M,kr = krow, kc = kcol, m = m,
 
 ### Plotting the result
 
-This snippet shows how to visualize the resulting co-clustering, with the **plot** function:
+This snippet of code shows how to visualize the resulting co-clustering, using the **plot** function:
 ```{r echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 
 plot(object)
@@ -187,13 +187,12 @@ include_graphics("figures/coclust.png")
 ```
 
 
-## Perform classification
-In this section, the dataset **dataqol.classif** is used. It contains the responses to a questionnaire for 40 patients affected by breast cancer. Furhermore, a column called **death** indicates if the patient died from the disease (2) or not (1). The aim of this section is to predict the classes of a validation dataset from a training dataset.
+## Performing classification
+In this section, the dataset __dataqol.classif__ is used. It contains the responses to a questionnaire by 40 patients affected by breast cancer. Furthermore, a column labeled __death__ indicates whether the patient died from the disease (2) or not (1). The aim of this section is to predict the classes of a validation dataset from a training dataset.
 
 ### Choosing a good kc parameter with cross-validation
 
-The classification function **bosclassif** proposes two classification models. The first one, (chosen by the option kc=0), is a multivariate BOS model assuming that, conditionally on the class of the observations, the feature are independent.
-The second model is a parsimonious version of the first model. Parcimony is introduced by grouping the features into clusters (as in co-clustering) and assuming that the features of a cluster have a common distribution. The number L of clusters of features is defined with the option kc=L. In practice L can be chosen by cross-validation, as in the following example:
+The classification function __bosclassif__ provides two classiﬁcation models. The ﬁrst model, (chosen by the option kc=0), is a multivariate BOS model with the assumption that, conditional to the class of the observations, the features are independent. The second model is a parsimonious version of the ﬁrst model. Parsimony is introduced by grouping the features into clusters (as in co-clustering) and assuming that the features of a cluster have a common distribution. The number L of clusters of features is defined with the option kc=L. In practice, L can be chosen by cross-validation, as shown in the following example:
 
 
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
@@ -240,7 +239,7 @@ kcol <- c(0,1,2,3)
 m <- 4
 
 
-# matrix which contains the predictions for all different kc
+# matrix that contains the predictions for all different kc
 preds <- matrix(0,nrow=length(kcol),ncol=nrow(M.validation))
 
 for(kc in 1:length(kcol)){
@@ -289,13 +288,13 @@ specificities
 
 ```
 
-## Handling different numbers of categories
+## Handling different numbers of levels
 
-The package allows the user to deal with ordinal data that have different numbers of categories. In this section, we show how to introduce this kind of datasets in the co-clustering context.
+The package can deal with ordinal data with different numbers of levels. In this section, we show how to introduce these kinds of datasets in a co-clustering context.
 
 ### Example code
 
-In this example, co-clustering is performed with the dataset **dataqol**, by including the questions with 4 categories, and questions with 7 categories. The function **boscoclustMulti** is executed, and **it might take a few minutes**.
+In this example, co-clustering is performed using the dataset **dataqol**, by including the questions with 4 levels, and questions with 7 levels. The function **boscoclustMulti** is executed, **which might take a few minutes**.
 
 ```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 set.seed(0)

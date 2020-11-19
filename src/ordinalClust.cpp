@@ -53,10 +53,10 @@ void testSeed(int seed){
 	double prob = (double)1 / 5;
 	std::fill(vec.begin(), vec.end(), prob);
 	boost::random::discrete_distribution<int> distribution (vec.begin(),vec.end());
-    int temp = distribution(generator);
+    //int temp = distribution(generator);
     //cout << " test: " << temp << endl;
 
-	int temp2 = distribution(generator);
+	//int temp2 = distribution(generator);
     //cout << " test2: " << temp2 << endl;
     return;
 }
@@ -723,7 +723,8 @@ bool compare_vec(arma::urowvec vec1, arma::rowvec vec2) {
 NumericMatrix allej(int j, int m) { // TODO . to implement
 	arma::umat result;
 	if (j == 1) {
-		result << 1 << m << arma::endr;
+		//result << 1 << m << arma::endr;
+		result = {{(unsigned int)1,(unsigned int)m}};
 		return(wrap(result));
 	}
 	if (j > m) {
@@ -736,8 +737,9 @@ NumericMatrix allej(int j, int m) { // TODO . to implement
 		for (unsigned int j = 0; j < indicesj.size(); ++j) {
 			int binf = indicesj(j);
 			int bsup = binf + sizeej - 1;
-			arma::umat rowvector;
-			rowvector << binf << bsup << arma::endr;
+			arma::umat rowvector = {{(unsigned int)binf, (unsigned int)bsup}};
+			//arma::umat rowvector;
+			//rowvector << binf << bsup << arma::endr;
 			result = arma::join_vert(result, rowvector);
 		}
 	}

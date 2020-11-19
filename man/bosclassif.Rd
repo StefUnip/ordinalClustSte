@@ -7,7 +7,7 @@ Function to perform a classification
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function performs a classification on a dataset with features of the ordinal kind, and a label variable of the integer type (1,2,...,kr). The classification function proposes two classification models. The first one, (chosen by the argument kc=0), is a multivariate BOS model assuming that, conditionally on the class of the observations, the feature are independent. The second model is a parsimonious version of the first model. Parcimony is introduced by grouping the features into clusters (as in co-clustering) and assuming that the features of a cluster have a common distribution. If the data contains ordinal features with D different numbers of levels, the data is going to be seen as D matrices of ordinal data.
+This function performs a classification algorithm on a dataset with ordinal features, and a label variable that belongs to (1,2,...,kr). The classification function provides two classification models. The first model, (chosen by the argument kc=0), is a multivariate BOS model with the assumtion that, conditional on the class of the observations, the features are independent. The second model is a parsimonious version of the first model. Parsimony is introduced by grouping the features into clusters (as in co-clustering) and assuming that the features of a cluster have a common distribution.
 }
 \usage{
 bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn, 
@@ -17,15 +17,15 @@ bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn,
 \arguments{
   \item{x}{
   %%     ~~Describe \code{x} here~~
-  Matrix made of ordinal data, of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be coded as NA.
+  Matrix made of ordinal data of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be coded as NA.
   }
   \item{y}{
   %%     ~~Describe \code{x} here~~
-  Vector of length N. It should represent the classes corresponding to each row of x. Must be labelled with integers (1,2,...,kr).
+  Vector of length N. It should represent the classes corresponding to each row of x. Must be labeled with numbers (1,2,...,kr).
   }
   \item{idx_list}{
   %%     ~~Describe \code{x} here~~
-  Vector of length D. This argument is useful when variables have different numbers of levels. Element d should indicate where the variables with number of levels m[d] begins in matrix x.
+  Vector of length D. This argument is useful when variables have different numbers of levels. Element d should indicate where the variables with number of levels m[d] begin in matrix x.
   }
   \item{kr}{
   %%     ~~Describe \code{kr} here~~
@@ -33,11 +33,11 @@ bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn,
   }
   \item{kc}{
   %%     ~~Describe \code{kc} here~~
-  Vector of length D. d^{th} element indicates the number of column clusters. Set to 0 to choose a classical multivariate BOS model.
+  Vector of length D. The d^{th} element indicates the number of column clusters. Set to 0 to choose a classical multivariate BOS model.
   }
   \item{m}{
   %%     ~~Describe \code{m} here~~
-  Vector of length D. d^{th} element defines the ordinal data's number of levels.
+  Vector of length D. The d^{th} element defines the number of levels of the ordinal data.
   }
   \item{nbSEM}{
   %%     ~~Describe \code{nbSEM} here~~
@@ -45,7 +45,7 @@ bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn,
   }
   \item{nbSEMburn}{
   %%     ~~Describe \code{nbSEMburn} here~~
-  Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
+  Number of SEM-Gibbs burn-in iterations for estimating parameters. This parameter must be inferior to nbSEM.
   }
   \item{nbindmini}{
   %%     ~~Describe \code{nbindmini} here~~
@@ -53,7 +53,7 @@ bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn,
   }
   \item{init}{
   %%     ~~Describe \code{init} here~~
-  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans", "random" or "randomBurnin".
+  String that indicates the kind of initialisation. Must be one of the following strings:  "kmeans", "random" or "randomBurnin".
   }
   \item{percentRandomB}{
   Vector of length 1. Indicates the percentage of resampling when init is equal to "randomBurnin".
@@ -70,8 +70,8 @@ bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn,
 %% ...
   Return an object. The slots are:
   \item{@zr}{Vector of length N with resulting row partitions.}
-  \item{@zc}{List of length D. d^{th} item is a vector of length J[d] representing the columns partitions for the group of variables d.}
-  \item{@J}{Vector of length D. d^{th} item represents the number of columns for d^{th} group of variables.}
+  \item{@zc}{List of length D. The d^{th} item is a vector of length J[d] representing the column partitions for the group of variables d.}
+  \item{@J}{Vector of length D. The d^{th} item represents the number of columns for d^{th} group of variables.}
   \item{@W}{List of length D. Item d is a matrix of dimension J*kc[d] such that W[j,h]=1 if j belongs to cluster h.}
   \item{@V}{Matrix of dimension N*kr such that V[i,g]=1 if i belongs to cluster g.}
   \item{@icl}{ICL value for co-clustering.}
@@ -79,13 +79,13 @@ bosclassif(x, y, idx_list=c(1), kr, kc=0, init, nbSEM, nbSEMburn,
   \item{@name}{Name of the result.}
   \item{@number_distrib}{Number of groups of variables.}
   \item{@pi}{Vector of length kr. Row mixing proportions.}
-  \item{@rho}{List of length D. d^{th} item represents the column mixing proportion for d^{th} group of variables.}
-  \item{@dlist}{List of length d. d^{th} item represents the indexes of group of variables d.}
-  \item{@kc}{Vector of length D. d^{th} element represents the number of clusters column H for d^{th} group of variables.}
-  \item{@m}{Vector of length D. d^{th} element represents the number of levels of d^{th} group of variables.}
+  \item{@rho}{List of length D. The d^{th} item represents the column mixing proportion for the d^{th} group of variables.}
+  \item{@dlist}{List of length d. The d^{th} item represents the indexes of group of variables d.}
+  \item{@kc}{Vector of length D. The d^{th} element represents the number of clusters column H for the d^{th} group of variables.}
+  \item{@m}{Vector of length D. The d^{th} element represents the number of levels of the d^{th} group of variables.}
   \item{@nbSEM}{Number of SEM-Gibbs algorithm iteration.}
-  \item{@params}{List of length D. d^{th} item represents the blocks paramaters for group of variables d.}
-  \item{@xhat}{List of length D. d^{th} item represents the d^{th} group of variables dataset, with missing values completed.}
+  \item{@params}{List of length D. The d^{th} item represents the blocks parameters for a group of variables d.}
+  \item{@xhat}{List of length D. The d^{th} item represents the dataset of the d^{th} group of variables, with missing values completed.}
   
   
 

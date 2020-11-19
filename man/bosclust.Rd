@@ -7,7 +7,7 @@ Function to perform a clustering
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function performs a clustering on ordinal data by using the multiple latent block model (cf references for further  details). It allows the user to define D groups of variables that have different number of levels. A BOS distribution is used, and the parameters inference is realized with an SEM-Gbbs algorithm.
+This function performs a clustering algorithm on ordinal data by using the multiple latent block model (see references for further  details). It allows the user to define D groups of variables that have different numbers of levels. The BOS distribution is used, and the parameters inference is obtained using the SEM-Gibbs algorithm.
 }
 \usage{
 bosclust(x, idx_list=c(1), kr, init, nbSEM, nbSEMburn, 
@@ -17,11 +17,11 @@ bosclust(x, idx_list=c(1), kr, init, nbSEM, nbSEMburn,
 \arguments{
   \item{x}{
   %%     ~~Describe \code{x} here~~
-  Matrix made of ordinal data, of dimension N*Jtot. The features with same numbers of levels must be placed side by side. The missing values should be coded as NA.
+  Matrix made of ordinal data of dimension N*Jtot. The features with the same numbers of levels must be placed side by side. The missing values should be coded as NA.
   }
   \item{idx_list}{
   %%     ~~Describe \code{x} here~~
-  Vector of length D. This argument is useful when variables have different numbers of levels. Element d should indicate where the variables with number of levels m[d] begins in matrix x.
+  Vector of length D. This argument is useful when variables have different numbers of levels. Element d should indicate where the variables with number of levels m[d] begin in matrix x.
   }
   \item{kr}{
   %%     ~~Describe \code{kr} here~~
@@ -29,15 +29,15 @@ bosclust(x, idx_list=c(1), kr, init, nbSEM, nbSEMburn,
   }
   \item{m}{
   %%     ~~Describe \code{m} here~~
-  Vector of length D. d^{th} element defines the ordinal data's number of levels.
+  Vector of length D. The d^{th} element defines the number of levels of the ordinal data.
   }
   \item{nbSEM}{
   %%     ~~Describe \code{nbSEM} here~~
-  Number of SEM-Gibbs iterations realized to estimate parameters.
+  Number of SEM-Gibbs iterations realized to estimate the parameters.
   }
   \item{nbSEMburn}{
   %%     ~~Describe \code{nbSEMburn} here~~
-  Number of SEM-Gibbs burning iterations for estimating parameters. This parameter must be inferior to nbSEM.
+  Number of SEM-Gibbs burn-in iterations for estimating parameters. This parameter must be inferior to nbSEM.
   }
   \item{nbindmini}{
   %%     ~~Describe \code{nbindmini} here~~
@@ -45,7 +45,7 @@ bosclust(x, idx_list=c(1), kr, init, nbSEM, nbSEMburn,
   }
   \item{init}{
   %%     ~~Describe \code{init} here~~
-  String that indicates the kind of initialisation. Must be one of th following words :  "kmeans", "random" or "randomBurnin".
+  String that indicates the kind of initialisation. Must be one of the following words :  "kmeans", "random" or "randomBurnin".
   }
   \item{percentRandomB}{
   Vector of length 1. Indicates the percentage of resampling when init is equal to "randomBurnin".
@@ -63,15 +63,15 @@ bosclust(x, idx_list=c(1), kr, init, nbSEM, nbSEMburn,
 
   \item{@V}{Matrix of dimension N*kr such that V[i,g]=1 if i belongs to cluster g.}
   \item{@zr}{Vector of length N with resulting row partitions.}
-  \item{@pi}{Vector of length kr. Row mixing proportions.}
-  \item{@m}{Vector of length D. d^{th} element represents the number of levels of d^{th} group of variables.}
+  \item{@pi}{Vector of length kr. This corresponds to the row mixing proportions.}
+  \item{@m}{Vector of length D. The d^{th} element represents the number of levels of the d^{th} group of variables.}
   \item{@icl}{ICL value for clustering.}       
   \item{@name}{Name of the result.}
-  \item{@params}{List of length D. d^{th} item stores the resulting position and precision parameters mu and pi.}
-  \item{@paramschain}{List of length nbSEMburn. For each iteration of the SEM-Gibbs algorithm, the parameters of the blocks are stored.}
-  \item{@xhat}{List of length D. d^{th} item represents the d^{th} group of variables dataset, with missing values completed.}
+  \item{@params}{List of length D. The d^{th} item stores the resulting position and precision parameters mu and pi.}
+  \item{@paramschain}{List of length nbSEMburn. The parameters of the blocks are stored for each iteration of the SEM-Gibbs algorithm.}
+  \item{@xhat}{List of length D. The d^{th} item represents the dataset of the d^{th} group of variables, with missing values completed.}
   \item{@zrchain}{Matrix of dimension nbSEM*N. Row i represents the row cluster partitions at iteration i.}    
-  \item{@pichain}{List of length nbSEM. Item i is a vector of length kr which contains the row mixing proportions at iteration i.}
+  \item{@pichain}{List of length nbSEM. Item i is a vector of length kr that contains the row mixing proportions at iteration i.}
 }
 %%\references{
 %% ~put references to the literature/web site here ~

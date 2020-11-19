@@ -4,9 +4,9 @@
 \alias{summary,ResultClassifOrdinal-method}
 \alias{summary,ResultClustOrdinal-method}
 \alias{summary,ResultCoclustOrdinal-method}
-\title{ ~~ Methods for Function \code{summary} in Package \pkg{ordinalClust} ~~}
+\title{ ~~ Methods for the Function \code{summary} in the \pkg{ordinalClust} package ~~}
 \description{
-Prints the result of a classification, clustering or co-clustering that were performed from the following functions:
+Prints the result of a classification, clustering or co-clustering performed using the following functions:
 bosclassif,bosclust,boscoclust.
 }
 \section{Methods}{

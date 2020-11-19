@@ -3,9 +3,9 @@
 \alias{predict}
 \alias{predict,ANY-method}
 \alias{predict,ResultClassifOrdinal-method}
-\title{ ~~ Methods for Function \code{predict} in Package \pkg{stats} ~~}
+\title{ ~~ Method for the function \code{predict} in the \pkg{ordinalClust} package  ~~}
 \description{
- ~~ Methods for function \code{predict} in package \pkg{stats} ~~
+Method for the function \code{predict} in the \pkg{ordinalClust} package.
 }
 \section{Methods}{
 \describe{

@@ -7,7 +7,7 @@ pejSim
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
-This function computes the probabiltiy for a level ej to be sampled from a BOS distribution of parameters (mu,pi), with a number of levels equals to m. Can be used to generate data wth BOS distribution.
+This function computes the probabilty for a level ej to be sampled from a BOS distribution of parameters (mu,pi), with the number of levels equal to m. It can be used to generate data with a BOS distribution.
 }
 \usage{
 pejSim(ej,m,mu,p)
@@ -16,7 +16,7 @@ pejSim(ej,m,mu,p)
 \arguments{
   \item{ej}{
 %%     ~~Describe \code{x} here~~
-levels to be sampled
+Levels to be sampled
 }
   \item{m}{
 %%     ~~Describe \code{kr} here~~
@@ -40,7 +40,7 @@ pi parameter for BOS distribution.
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
-  Return the probabiltiy of ej to be sampled from a BOS distribution of parameters (mu,pi), with a number of levels equals to m.
+  Returns the probability of ej to be sampled from a BOS distribution of parameters (mu,pi), with the number of levels equal to m.
 }
 %%\references{
 %% ~put references to the literature/web site here ~

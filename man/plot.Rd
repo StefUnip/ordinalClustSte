@@ -4,9 +4,9 @@
 \alias{plot,ResultClassifOrdinal-method}
 \alias{plot,ResultClustOrdinal-method}
 \alias{plot,ResultCoclustOrdinal-method}
-\title{ ~~ Methods for Function \code{plot} in Package \pkg{ordinalClust} ~~}
+\title{ ~~ Method for the function \code{plot} in the \pkg{ordinalClust} package ~~}
 \description{
-Plots the result of a classification, clustering or co-clustering that were performed from the following functions:
+Plots the result of a classification, clustering or co-clustering performed using the following functions:
 bosclassif,bosclust,boscoclust.
 }
 \section{Methods}{

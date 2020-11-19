@@ -1,10 +1,10 @@
-## ------------------------------------------------------------------------
-set.seed(0)
+## -----------------------------------------------------------------------------
+set.seed(1)
 
-## ---- echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE-----------------
+## ---- echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE----------------------
 library(ordinalClust)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 m=7
 nr=10000
 mu=5
@@ -35,7 +35,7 @@ plot1 <- ggplot(data = M, aes(x = M,fill=factor(M))) +
 
 plot1
 
-## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
+## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE---------------------
 #  set.seed(0)
 #  
 #  library(ordinalClust)
@@ -59,7 +59,7 @@ plot1
 #      percentRandomB=percentRandomB, init=init)
 #  
 
-## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
+## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE---------------------
 #  
 #  plot(object)
 #  
@@ -69,7 +69,7 @@ library(knitr)    # For knitting document and include_graphics function
 
 include_graphics("figures/clust.png")
 
-## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
+## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE---------------------
 #  
 #  set.seed(0)
 #  
@@ -106,7 +106,7 @@ include_graphics("figures/clust.png")
 #  
 #  
 
-## ----echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE-----------------
+## ----echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------------
 #  
 #  plot(object)
 #  
@@ -116,7 +116,7 @@ library(knitr)    # For knitting document and include_graphics function
 
 include_graphics("figures/coclust.png")
 
-## ---- echo=TRUE, message=FALSE, warning=FALSE----------------------------
+## ---- echo=TRUE, message=FALSE, warning=FALSE---------------------------------
 set.seed(1)
 
 library(ordinalClust)
@@ -160,7 +160,7 @@ kcol <- c(0,1,2,3)
 m <- 4
 
 
-# matrix which contains the predictions for all different kc
+# matrix that contains the predictions for all different kc
 preds <- matrix(0,nrow=length(kcol),ncol=nrow(M.validation))
 
 for(kc in 1:length(kcol)){
@@ -183,7 +183,7 @@ for(kc in kcol){
 rownames(preds)=row.names
 
 
-## ---- echo=TRUE, message=FALSE, warning=FALSE----------------------------
+## ---- echo=TRUE, message=FALSE, warning=FALSE---------------------------------
 
 library(caret)
 
@@ -204,7 +204,7 @@ sensitivities
 specificities
 
 
-## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE----------------
+## ---- echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE---------------------
 #  set.seed(0)
 #  
 #  library(ordinalClust)
