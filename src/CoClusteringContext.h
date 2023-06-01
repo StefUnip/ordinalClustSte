@@ -70,6 +70,7 @@ protected:
 	vector<mat> _probaW;
 	mat _logprobaV;
 	vector<mat> _logprobaW;
+	mat _Prova;
 	mat _V;
 	vector<mat> _W;
 	vector<rowvec> _rho;
