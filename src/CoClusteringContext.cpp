@@ -705,6 +705,9 @@ void CoClusteringContext::putParamsToZero() {
 S4 CoClusteringContext::returnCoclustering() {
 	S4 x("ResultCoclustOrdinal");
 
+	//MIO
+	x.slot("Prova") = _V;
+	
     // partitions:
     x.slot("V")  = _V;
     List resultW(_number_distrib);
