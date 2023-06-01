@@ -53,6 +53,8 @@ public:
 	void  putParamsToZero();
 	S4 returnCoclustering();
 	double computeICL();
+	mat _Prova;
+	mat Prova;
 
 protected:
 	mat _x;
@@ -71,6 +73,7 @@ protected:
 	mat _logprobaV;
 	vector<mat> _logprobaW;
 	mat _Prova;
+	mat Prova;
 	mat _V;
 	vector<mat> _W;
 	vector<rowvec> _rho;
