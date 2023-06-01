@@ -107,6 +107,7 @@ CoClusteringContext::CoClusteringContext(arma::mat x, std::vector< arma::urowvec
 
 	mat tmp_V(_Nr, _kr, fill::zeros);
 	this->_V = tmp_V;
+	this->_Prova = tmp_V; //MIO
 	rowvec tmp_gamma(_kr);
 	std::fill(tmp_gamma.begin(), tmp_gamma.end(), 0);
 	this->_gamma = tmp_gamma;
