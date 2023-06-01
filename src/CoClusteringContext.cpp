@@ -710,7 +710,7 @@ S4 CoClusteringContext::returnCoclustering() {
 //	x.slot("Prova") = _V;
 	
     // partitions:
-    x.slot("V")  = 42; //_V MIO (modificato)
+    x.slot("V")  = _probaV; //_V MIO (modificato)
     List resultW(_number_distrib);
     for (int idistrib = 0; idistrib < _number_distrib; idistrib++) {
 		resultW[idistrib] = this->_W[idistrib];
